@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#0a0a0a">
+
+    <LinearLayout
+        android:id="@+id/pick_green"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/preview_green"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/label_green"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GREEN"
+            android:textColor="#33ff33"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:letterSpacing="0.1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/pick_color"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/preview_color"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/label_color"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="COLOR"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:textSize="12sp"
+            android:letterSpacing="0.1" />
+    </LinearLayout>
+
+</LinearLayout>

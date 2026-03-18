@@ -112,31 +112,65 @@ class HomeActivity : AppCompatActivity() {
 
     private fun showIconPicker() {
         val current = prefs.appIcon
-        val options = arrayOf(
-            "GREEN PHOSPHOR" + if (current == "green") "  [*]" else "",
-            "CLASSIC COLOR" + if (current == "color") "  [*]" else "",
-        )
+        val view = layoutInflater.inflate(R.layout.dialog_icon_picker, null)
 
-        AlertDialog.Builder(this)
-            .setTitle("APP ICON")
-            .setItems(options) { _, which ->
-                val selected = if (which == 0) "green" else "color"
-                if (selected != current) {
-                    setAppIcon(selected)
-                }
+        val previewGreen = view.findViewById<android.widget.ImageView>(R.id.preview_green)
+        val previewColor = view.findViewById<android.widget.ImageView>(R.id.preview_color)
+        val labelGreen = view.findViewById<TextView>(R.id.label_green)
+        val labelColor = view.findViewById<TextView>(R.id.label_color)
+
+        // Load preview images from assets
+        try {
+            assets.open("icon_preview_green.png").use {
+                previewGreen.setImageBitmap(android.graphics.BitmapFactory.decodeStream(it))
             }
+            assets.open("icon_preview_color.png").use {
+                previewColor.setImageBitmap(android.graphics.BitmapFactory.decodeStream(it))
+            }
+        } catch (_: Exception) {
+            // Fallback to mipmap if assets missing
+            previewGreen.setImageResource(R.mipmap.ic_launcher_green)
+            previewColor.setImageResource(R.mipmap.ic_launcher_color)
+        }
+
+        // Highlight current selection
+        if (current == "green") {
+            labelGreen.text = "GREEN [*]"
+            labelGreen.setTextColor(0xFF33FF33.toInt())
+            labelColor.setTextColor(0xFF1A9A1A.toInt())
+        } else {
+            labelColor.text = "COLOR [*]"
+            labelColor.setTextColor(0xFF33FF33.toInt())
+            labelGreen.setTextColor(0xFF1A9A1A.toInt())
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("APP ICON")
+            .setView(view)
             .setNegativeButton("CANCEL", null)
-            .show()
+            .create()
+
+        view.findViewById<View>(R.id.pick_green).setOnClickListener {
+            if (current != "green") setAppIcon("green")
+            dialog.dismiss()
+        }
+        view.findViewById<View>(R.id.pick_color).setOnClickListener {
+            if (current != "color") setAppIcon("color")
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun setAppIcon(icon: String) {
         prefs.appIcon = icon
 
         val pm = packageManager
+        val basePackage = packageName.removeSuffix(".debug")
 
-        // Disable all aliases, then enable the selected one
         for ((key, alias) in ICON_ALIASES) {
-            val component = ComponentName(this, "${packageName.removeSuffix(".debug")}$alias")
+            // Class name uses the base package, but ComponentName needs the actual package
+            val component = ComponentName(packageName, "$basePackage$alias")
             val state = if (key == icon) {
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED
             } else {
@@ -145,7 +179,7 @@ class HomeActivity : AppCompatActivity() {
             pm.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP)
         }
 
-        Toast.makeText(this, "Icon changed. Launcher may take a moment to update.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Icon updated.", Toast.LENGTH_SHORT).show()
     }
 
     private fun showSshKeyDialog() {
