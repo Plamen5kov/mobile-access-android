@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Terminal</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="status-bar">
+        <div class="status-bar-left">
+          <span class="title">&gt;_Terminal</span>
+          <span id="settings-btn" class="status-btn">[cfg]</span>
+        </div>
+        <span id="theme-toggle">[grn]</span>
+        <div id="status-indicator">
+          <span id="status-text">INIT</span>
+          <span id="status-dot" class="connecting"></span>
+        </div>
+      </div>
+
+      <div id="tab-bar"></div>
+
+      <div id="terminal-wrapper">
+        <div id="terminal-container"></div>
+
+        <button id="session-close-btn" class="hidden">[x]</button>
+
+        <div id="float-keys">
+          <button class="float-key" data-action="tab">TAB</button>
+          <button class="float-key" data-action="up">&#9650;</button>
+          <button class="float-key" data-action="down">&#9660;</button>
+          <button class="float-key" data-action="enter">RET</button>
+        </div>
+
+        <div id="error-panel" class="hidden">
+          <div id="error-message"></div>
+          <div class="error-actions">
+            <button id="reconnect-btn" class="error-btn">[RECONNECT]</button>
+            <button id="error-settings-btn" class="error-btn secondary">[SETTINGS]</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="toolbar">
+        <div class="toolbar-left">
+          <button id="esc-btn" class="toolbar-btn">ESC</button>
+          <button id="ctrlc-btn" class="toolbar-btn">C-c</button>
+        </div>
+        <div class="toolbar-right">
+          <button id="up-btn" class="toolbar-btn">&#9650;</button>
+          <button id="down-btn" class="toolbar-btn">&#9660;</button>
+        </div>
+      </div>
+
+      <div id="controls">
+        <div
+          id="dictation-text"
+          contenteditable="true"
+          data-placeholder="> type command..."
+          role="textbox"
+          aria-multiline="true"
+        ></div>
+        <button id="action-btn" class="btn">mic/&gt;</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

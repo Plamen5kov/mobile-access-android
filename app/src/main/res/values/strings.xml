@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Terminal</string>
+    <string name="tile_label">Terminal</string>
+    <string name="notification_connected">Connected to %s</string>
+    <string name="notification_connecting">Connecting to %s…</string>
+    <string name="notification_disconnected">Disconnected</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="home_add_server">Add Server</string>
+    <string name="home_empty">No servers configured.\nTap below to add one.</string>
+    <string name="server_edit_title_add">Add Server</string>
+    <string name="server_edit_title_edit">Edit Server</string>
+    <string name="setup_hostname">Hostname</string>
+    <string name="setup_port">Port</string>
+    <string name="setup_username">Username</string>
+    <string name="setup_name">Display Name (optional)</string>
+    <string name="setup_save">Save</string>
+    <string name="setup_delete">Delete</string>
+    <string name="setup_test">Test Connection</string>
+    <string name="setup_generate_key">Generate SSH Key</string>
+    <string name="setup_public_key">Public Key</string>
+    <string name="setup_copy_key">Copy to Clipboard</string>
+    <string name="ssh_key_title">SSH Key</string>
+    <string name="ssh_key_none">No key generated yet</string>
+</resources>

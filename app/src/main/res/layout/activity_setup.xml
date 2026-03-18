@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp"
+    android:fitsSystemWindows="true"
+    android:background="#0a0a0a">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/setup_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/server_edit_title_add"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#33ff33"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NAME:"
+            android:textSize="11sp"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/input_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="my-server"
+            android:inputType="text"
+            android:singleLine="true"
+            android:fontFamily="monospace"
+            android:background="@drawable/card_background"
+            android:padding="12dp"
+            android:textColor="#33ff33"
+            android:textColorHint="#0d5a0d"
+            android:layout_marginBottom="14dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HOSTNAME:"
+            android:textSize="11sp"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/input_hostname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="192.168.1.100"
+            android:inputType="textUri"
+            android:singleLine="true"
+            android:fontFamily="monospace"
+            android:background="@drawable/card_background"
+            android:padding="12dp"
+            android:textColor="#33ff33"
+            android:textColorHint="#0d5a0d"
+            android:layout_marginBottom="14dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PORT:"
+            android:textSize="11sp"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/input_port"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="22"
+            android:singleLine="true"
+            android:fontFamily="monospace"
+            android:background="@drawable/card_background"
+            android:padding="12dp"
+            android:textColor="#33ff33"
+            android:layout_marginBottom="14dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="USERNAME:"
+            android:textSize="11sp"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/input_username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="root"
+            android:inputType="textNoSuggestions"
+            android:singleLine="true"
+            android:fontFamily="monospace"
+            android:background="@drawable/card_background"
+            android:padding="12dp"
+            android:textColor="#33ff33"
+            android:textColorHint="#0d5a0d"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:id="@+id/btn_advanced_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[+] ADVANCED"
+            android:textSize="11sp"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/advanced_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TMUX SESSION:"
+                android:textSize="11sp"
+                android:textColor="#1a9a1a"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="4dp" />
+
+            <EditText
+                android:id="@+id/input_tmux_session"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="mobile-terminal"
+                android:inputType="textNoSuggestions"
+                android:singleLine="true"
+                android:fontFamily="monospace"
+                android:background="@drawable/card_background"
+                android:padding="12dp"
+                android:textColor="#33ff33"
+                android:textColorHint="#0d5a0d"
+                android:layout_marginBottom="14dp" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="[ TEST CONNECTION ]"
+            android:textColor="#1a9a1a"
+            android:fontFamily="monospace"
+            android:background="@android:color/transparent"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="[ SAVE ]"
+            android:textColor="#33ff33"
+            android:fontFamily="monospace"
+            android:background="@drawable/card_background"
+            android:padding="14dp"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btn_delete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="[ DELETE ]"
+            android:textColor="#ff3333"
+            android:fontFamily="monospace"
+            android:background="@android:color/transparent"
+            android:letterSpacing="0.05"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>
