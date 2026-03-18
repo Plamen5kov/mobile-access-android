@@ -15,12 +15,7 @@ import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
 import org.robolectric.RobolectricTestRunner
 import xyz.fivekov.terminal.data.AppPreferences
-
-/** Pass-through encryption for testing (no Keystore needed). */
-class FakeKeyEncryption : KeyEncryption {
-    override fun encrypt(data: ByteArray) = EncryptedData(data, byteArrayOf(0))
-    override fun decrypt(encrypted: EncryptedData) = encrypted.ciphertext
-}
+import xyz.fivekov.terminal.testutil.FakeKeyEncryption
 
 @RunWith(RobolectricTestRunner::class)
 class SshKeyManagerTest {
