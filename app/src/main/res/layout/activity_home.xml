@@ -15,6 +15,7 @@
         android:background="#111111">
 
         <TextView
+            android:id="@+id/app_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -23,7 +24,9 @@
             android:textStyle="bold"
             android:textColor="#33ff33"
             android:fontFamily="monospace"
-            android:letterSpacing="0.1" />
+            android:letterSpacing="0.1"
+            android:clickable="true"
+            android:focusable="true" />
 
         <ImageButton
             android:id="@+id/btn_ssh_key"

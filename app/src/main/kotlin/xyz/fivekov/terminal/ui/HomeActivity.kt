@@ -3,7 +3,9 @@ package xyz.fivekov.terminal.ui
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -14,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import xyz.fivekov.terminal.R
+import xyz.fivekov.terminal.data.AppPreferences
 import xyz.fivekov.terminal.data.ServerConfig
 import xyz.fivekov.terminal.data.ServerRepository
 import xyz.fivekov.terminal.ssh.SshKeyManager
@@ -23,6 +26,7 @@ class HomeActivity : AppCompatActivity() {
 
     private val serverRepo: ServerRepository by inject()
     private val keyManager: SshKeyManager by inject()
+    private val prefs: AppPreferences by inject()
 
     private lateinit var adapter: ServerAdapter
     private lateinit var emptyState: TextView
@@ -30,6 +34,11 @@ class HomeActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_SERVER_ID = "server_id"
         private const val REQUEST_ADD_EDIT = 1
+
+        private val ICON_ALIASES = mapOf(
+            "green" to ".ui.LauncherGreen",
+            "color" to ".ui.LauncherColor",
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +63,10 @@ class HomeActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.btn_ssh_key).setOnClickListener {
             showSshKeyDialog()
+        }
+
+        findViewById<TextView>(R.id.app_title).setOnClickListener {
+            showIconPicker()
         }
 
         refreshList()
@@ -95,6 +108,44 @@ class HomeActivity : AppCompatActivity() {
             putExtra(EXTRA_SERVER_ID, server.id)
         }
         startActivityForResult(intent, REQUEST_ADD_EDIT)
+    }
+
+    private fun showIconPicker() {
+        val current = prefs.appIcon
+        val options = arrayOf(
+            "GREEN PHOSPHOR" + if (current == "green") "  [*]" else "",
+            "CLASSIC COLOR" + if (current == "color") "  [*]" else "",
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("APP ICON")
+            .setItems(options) { _, which ->
+                val selected = if (which == 0) "green" else "color"
+                if (selected != current) {
+                    setAppIcon(selected)
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun setAppIcon(icon: String) {
+        prefs.appIcon = icon
+
+        val pm = packageManager
+
+        // Disable all aliases, then enable the selected one
+        for ((key, alias) in ICON_ALIASES) {
+            val component = ComponentName(this, "${packageName.removeSuffix(".debug")}$alias")
+            val state = if (key == icon) {
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            } else {
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            }
+            pm.setComponentEnabledSetting(component, state, PackageManager.DONT_KILL_APP)
+        }
+
+        Toast.makeText(this, "Icon changed. Launcher may take a moment to update.", Toast.LENGTH_SHORT).show()
     }
 
     private fun showSshKeyDialog() {
