@@ -189,4 +189,11 @@ export function setupToolbar(sessionManager: SessionManager) {
                 window.Android?.openSettings();
             }
         });
+
+    document
+        .getElementById("error-close-btn")!
+        .addEventListener("click", () => {
+            const sid = sessionManager.getActiveSessionId();
+            if (sid) window.Android?.destroySession(sid);
+        });
 }
