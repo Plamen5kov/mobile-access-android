@@ -1,3 +1,6 @@
+# Missing annotation classes referenced by dependencies
+-dontwarn com.google.errorprone.annotations.**
+
 # sshlib - keep SSH connection classes
 -keep class com.trilead.ssh2.** { *; }
 -keep class org.connectbot.simplesocks.** { *; }
