@@ -16,6 +16,8 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewAssetLoader
 import kotlinx.coroutines.Job
@@ -66,6 +68,7 @@ class TerminalActivity : AppCompatActivity() {
 
         pendingServerId = intent.getStringExtra(HomeActivity.EXTRA_SERVER_ID)
         setupWebView()
+        setupKeyboardInsets()
         registerNetworkCallback()
     }
 
@@ -236,6 +239,20 @@ class TerminalActivity : AppCompatActivity() {
         }
 
         observationJobs[sessionId] = listOf(stateJob, outputJob, errorJob)
+    }
+
+    private fun setupKeyboardInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { view, insets ->
+            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+            val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                systemBarInsets.left,
+                systemBarInsets.top,
+                systemBarInsets.right,
+                maxOf(imeInsets.bottom, systemBarInsets.bottom),
+            )
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private fun registerNetworkCallback() {
