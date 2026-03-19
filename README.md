@@ -113,6 +113,23 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ./gradlew testDebugUnitTest
 ```
 
+### Release
+
+```bash
+# Patch release (0.1.0 -> 0.1.1)
+./scripts/release.sh
+
+# Minor release (0.1.0 -> 0.2.0)
+./scripts/release.sh minor
+
+# Major release (0.1.0 -> 1.0.0)
+./scripts/release.sh major
+```
+
+The script bumps `appVersionName` in `gradle.properties`, commits, tags, and pushes. CI builds the APK and creates a GitHub release at `https://github.com/Plamen5kov/mobile-access-android/releases`.
+
+Install via [Obtainium](https://github.com/ImranR98/Obtainium): point it at this repo and it auto-detects new releases.
+
 ## Architecture
 
 ```
