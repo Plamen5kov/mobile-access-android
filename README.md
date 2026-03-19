@@ -4,6 +4,13 @@ A native Android SSH terminal app with a retro 80s aesthetic. Connects directly 
 
 Built for GrapheneOS on Pixel 9a. No Google Play Services required.
 
+## Screenshots
+
+| Dark | Light |
+|------|-------|
+| ![Home dark](screenshots/home-dark.webp) | ![Home light](screenshots/home-light.webp) |
+| ![Terminal dark](screenshots/terminal-dark.webp) | ![Terminal light](screenshots/terminal-light.webp) |
+
 ## What it does
 
 - SSH terminal with xterm.js rendering (256-color, full VT100)
