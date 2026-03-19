@@ -2,60 +2,17 @@ import type { SessionManager } from "./session-manager";
 
 const LONG_PRESS_MS = 200;
 
-export function setupInput(
-    inputField: HTMLElement,
-    sessionManager: SessionManager,
-) {
+export function setupInput(sessionManager: SessionManager) {
     const actionBtn = document.getElementById("action-btn")!;
 
-    function getText(): string {
-        return (inputField.innerText || inputField.textContent || "").trim();
-    }
-
-    function clear() {
-        inputField.textContent = "";
-    }
-
-    function sendTextAndEnter() {
-        const text = getText();
-        const data = text ? text + "\r" : "\r";
-        const sid = sessionManager.getActiveSessionId();
-        if (sid) window.Android?.sendInput(sid, data);
-        clear();
-        focusTerminal();
-    }
-
-    function focusTerminal() {
-        const term = sessionManager.getActiveTerminal();
-        if (term) term.focus();
-        inputField.classList.remove("active");
-    }
-
-    // Tapping the terminal area focuses xterm.js
+    // Tapping the terminal area focuses xterm.js for direct keyboard input
     document
         .getElementById("terminal-container")!
         .addEventListener("click", () => {
-            focusTerminal();
+            sessionManager.getActiveTerminal()?.focus();
         });
 
-    inputField.addEventListener("focus", () => {
-        inputField.classList.add("active");
-    });
-
-    inputField.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendTextAndEnter();
-        }
-    });
-
-    inputField.addEventListener("paste", (e) => {
-        e.preventDefault();
-        const text = e.clipboardData?.getData("text/plain") ?? "";
-        document.execCommand("insertText", false, text);
-    });
-
-    // --- Action button: tap = send, long-press = push-to-talk ---
+    // --- Action button: tap = send enter, long-press = push-to-talk ---
     let pressTimer: ReturnType<typeof setTimeout> | null = null;
     let isLongPress = false;
     let isRecording = false;
@@ -93,7 +50,9 @@ export function setupInput(
         if (isRecording) {
             stopRecording();
         } else if (!isLongPress) {
-            sendTextAndEnter();
+            // Tap = send enter to active session
+            const sid = sessionManager.getActiveSessionId();
+            if (sid) window.Android?.sendInput(sid, "\r");
         }
         isLongPress = false;
     }
@@ -113,35 +72,6 @@ export function setupInput(
     actionBtn.addEventListener("touchcancel", onPressCancel);
     actionBtn.addEventListener("mousedown", onPressStart);
     actionBtn.addEventListener("mouseup", onPressEnd);
-
-    // Floating keys
-    const floatKeyMap: Record<string, string> = {
-        tab: "\t",
-        up: "\x1b[A",
-        down: "\x1b[B",
-        enter: "\r",
-    };
-
-    document
-        .querySelectorAll<HTMLButtonElement>(".float-key")
-        .forEach((btn) => {
-            const action = btn.dataset.action ?? "";
-            const key = floatKeyMap[action];
-            if (!key) return;
-
-            btn.addEventListener("touchstart", (e) => {
-                e.preventDefault();
-                const sid = sessionManager.getActiveSessionId();
-                if (sid) window.Android?.sendInput(sid, key);
-            });
-            btn.addEventListener("mousedown", (e) => {
-                e.preventDefault();
-                const sid = sessionManager.getActiveSessionId();
-                if (sid) window.Android?.sendInput(sid, key);
-            });
-        });
-
-    return { sendTextAndEnter };
 }
 
 export function setupToolbar(sessionManager: SessionManager) {
@@ -156,6 +86,9 @@ export function setupToolbar(sessionManager: SessionManager) {
     document
         .getElementById("ctrlc-btn")!
         .addEventListener("click", () => send("\x03"));
+    document
+        .getElementById("tab-btn")!
+        .addEventListener("click", () => send("\t"));
     document
         .getElementById("up-btn")!
         .addEventListener("click", () => send("\x1b[A"));

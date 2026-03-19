@@ -1,7 +1,7 @@
 import type { ThemeName } from "./types";
 import type { SessionManager } from "./session-manager";
 
-let currentTheme: ThemeName = "green";
+let currentTheme: ThemeName = "dark";
 
 export function getCurrentTheme(): ThemeName {
     return currentTheme;
@@ -10,17 +10,12 @@ export function getCurrentTheme(): ThemeName {
 export function applyTheme(theme: ThemeName) {
     currentTheme = theme;
     const root = document.documentElement;
-    const toggle = document.getElementById("theme-toggle");
 
-    if (theme === "amber") {
-        root.classList.add("amber");
-        if (toggle) toggle.textContent = "[amb]";
+    if (theme === "light") {
+        root.classList.add("light");
     } else {
-        root.classList.remove("amber");
-        if (toggle) toggle.textContent = "[grn]";
+        root.classList.remove("light");
     }
-
-    window.Android?.onThemeChanged(theme);
 }
 
 export function setupViewportTracking(

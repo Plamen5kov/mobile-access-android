@@ -9,7 +9,6 @@ export interface AndroidBridge {
     openSettings(): void;
     openServerSettings(serverId: string): void;
     onWebViewReady(): void;
-    onThemeChanged(theme: string): void;
 }
 
 /** Methods callable from Kotlin via evaluateJavascript */
@@ -24,7 +23,7 @@ export interface NativeTerminalApi {
     setTheme(theme: ThemeName): void;
 }
 
-export type ThemeName = "green" | "amber";
+export type ThemeName = "dark" | "light";
 
 declare global {
     interface Window {

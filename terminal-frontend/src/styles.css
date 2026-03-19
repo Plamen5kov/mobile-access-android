@@ -24,12 +24,18 @@
   --font: "Courier New", Courier, monospace;
 }
 
-:root.amber {
-  --text-primary: #ffb000;
-  --text-secondary: #a07000;
-  --text-muted: #604000;
-  --accent: #ffb000;
-  --glow: rgba(255, 176, 0, 0.15);
+:root.light {
+  --bg-primary: #e8dcc8;
+  --bg-secondary: #ddd0b8;
+  --bg-input: #e8dcc8;
+  --bg-toolbar-btn: #d4c8b0;
+  --border-color: #c0b090;
+  --text-primary: #3d2b00;
+  --text-secondary: #7a5a1a;
+  --text-muted: #b89a5a;
+  --accent: #cc7700;
+  --glow: rgba(204, 119, 0, 0.12);
+  --error: #aa2200;
 }
 
 html,
@@ -169,19 +175,26 @@ body {
 }
 
 .tab {
-  padding: 8px 14px;
+  padding: 8px 0;
   font: 11px/1 var(--font);
   color: var(--text-muted);
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   border-right: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  justify-content: center;
+  flex: 1;
   -webkit-tap-highlight-color: transparent;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: color 0.15s, background 0.15s;
+}
+
+.tab:last-child {
+  border-right: none;
 }
 
 .tab:active {
@@ -189,9 +202,10 @@ body {
 }
 
 .tab.active {
-  color: var(--text-primary);
+  color: var(--accent);
   background: var(--bg-primary);
   text-shadow: 0 0 8px var(--glow);
+  border-bottom: 2px solid var(--accent);
 }
 
 .tab-label {
@@ -242,42 +256,6 @@ body {
 #session-close-btn:active {
   opacity: 1;
   color: var(--error);
-}
-
-/* --- Floating keys overlay --- */
-#float-keys {
-  position: absolute;
-  right: 6px;
-  bottom: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 5;
-  pointer-events: auto;
-}
-
-.float-key {
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: rgba(10, 10, 10, 0.7);
-  color: var(--text-muted);
-  font: 600 11px var(--font);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  opacity: 0.5;
-  transition: opacity 0.15s;
-}
-
-.float-key:active {
-  opacity: 1;
-  color: var(--text-primary);
-  text-shadow: 0 0 8px var(--glow);
 }
 
 /* --- Error panel --- */
@@ -387,88 +365,8 @@ body {
 #ctrlc-btn {
   color: var(--error);
 }
-#tab-btn {
-  color: var(--text-secondary);
-}
-#up-btn,
-#down-btn {
-  font-size: 14px;
-}
-
-/* --- Controls bar --- */
-#controls {
-  display: flex;
-  gap: 6px;
-  padding: 6px 8px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  align-items: flex-end;
-  flex-shrink: 0;
-}
-
-#dictation-text {
-  flex: 1;
-  background: var(--bg-input);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 2px;
-  padding: 8px 12px;
-  font: 14px/1.4 var(--font);
-  min-height: 38px;
-  max-height: 100px;
-  outline: none;
-  transition: border-color 0.2s;
-  -webkit-appearance: none;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  -webkit-user-select: text;
-  user-select: text;
-}
-
-#dictation-text:focus,
-#dictation-text.active {
-  border-color: var(--text-secondary);
-  box-shadow: 0 0 6px var(--glow);
-}
-
-#dictation-text:empty::before {
-  content: attr(data-placeholder);
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.btn {
-  border: 1px solid var(--border-color);
-  border-radius: 2px;
-  padding: 0;
-  font: 600 14px var(--font);
-  cursor: pointer;
-  color: var(--text-primary);
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.1s;
-  background: var(--bg-toolbar-btn);
-}
-
-.btn:active {
-  opacity: 0.7;
-  text-shadow: 0 0 8px var(--glow);
-}
-
 #action-btn {
-  background: var(--bg-toolbar-btn);
-  color: var(--text-primary);
-  font-size: 13px;
-  width: auto;
-  padding: 0 10px;
-  gap: 2px;
-  white-space: nowrap;
+  color: var(--text-secondary);
 }
 
 #action-btn.recording {

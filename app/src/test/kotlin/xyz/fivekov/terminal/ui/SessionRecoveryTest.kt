@@ -126,7 +126,6 @@ class SessionRecoveryTest {
             onOpenSettings = {},
             onOpenServerSettings = { serverId -> openedServerId = serverId },
             onReady = {},
-            onThemeChanged = {},
         )
 
         // Simulate error panel settings click for a specific server
@@ -150,7 +149,6 @@ class SessionRecoveryTest {
             onOpenSettings = {},
             onOpenServerSettings = { _ -> },
             onReady = {},
-            onThemeChanged = {},
         )
 
         // Create a broken session

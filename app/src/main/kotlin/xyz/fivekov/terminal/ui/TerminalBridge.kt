@@ -14,7 +14,6 @@ class TerminalBridge(
     private val onOpenSettings: () -> Unit,
     private val onOpenServerSettings: (serverId: String) -> Unit,
     private val onReady: () -> Unit,
-    private val onThemeChanged: (String) -> Unit,
 ) {
     // --- JS → Kotlin ---
 
@@ -61,11 +60,6 @@ class TerminalBridge(
     @JavascriptInterface
     fun onWebViewReady() {
         onReady()
-    }
-
-    @JavascriptInterface
-    fun onThemeChanged(theme: String) {
-        onThemeChanged.invoke(theme)
     }
 
     // --- Kotlin → JS ---

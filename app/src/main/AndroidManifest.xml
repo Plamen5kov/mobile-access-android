@@ -61,6 +61,11 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" />
 
         <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false"
+            android:label="SETTINGS" />
+
+        <activity
             android:name=".ui.ServerEditActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

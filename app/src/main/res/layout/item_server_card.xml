@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:textColor="#33ff33"
+            android:textColor="?android:textColorPrimary"
             android:fontFamily="monospace"
             android:textStyle="bold" />
 
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="#1a9a1a"
+            android:textColor="?android:textColorSecondary"
             android:fontFamily="monospace"
             android:layout_marginTop="2dp" />
     </LinearLayout>

@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Terminal" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:statusBarColor">#0a0a0a</item>
-        <item name="android:navigationBarColor">#0a0a0a</item>
-        <item name="android:windowBackground">#0a0a0a</item>
-        <item name="android:colorBackground">#0a0a0a</item>
-        <item name="android:textColor">#33ff33</item>
-        <item name="android:textColorPrimary">#33ff33</item>
-        <item name="android:textColorSecondary">#1a9a1a</item>
-        <item name="android:textColorHint">#0d5a0d</item>
-        <item name="android:editTextColor">#33ff33</item>
-        <item name="android:colorAccent">#33ff33</item>
-        <item name="android:colorControlActivated">#33ff33</item>
-        <item name="android:colorControlNormal">#1a9a1a</item>
-        <item name="colorPrimary">#33ff33</item>
-        <item name="colorAccent">#33ff33</item>
+    <!-- Light theme: amber on warm cream, like an 80s paper terminal -->
+    <style name="Theme.Terminal" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">#e8dcc8</item>
+        <item name="android:navigationBarColor">#e8dcc8</item>
+        <item name="android:windowBackground">#e8dcc8</item>
+        <item name="android:colorBackground">#e8dcc8</item>
+        <item name="android:textColor">#3d2b00</item>
+        <item name="android:textColorPrimary">#3d2b00</item>
+        <item name="android:textColorSecondary">#7a5a1a</item>
+        <item name="android:textColorHint">#b89a5a</item>
+        <item name="android:editTextColor">#3d2b00</item>
+        <item name="android:colorAccent">#cc7700</item>
+        <item name="android:colorControlActivated">#cc7700</item>
+        <item name="android:colorControlNormal">#7a5a1a</item>
+        <item name="colorPrimary">#cc7700</item>
+        <item name="colorAccent">#cc7700</item>
         <item name="android:fontFamily">monospace</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>

@@ -24,7 +24,6 @@ class TerminalBridgeTest {
     private var destroyedSessionId: String? = null
     private var settingsOpened = false
     private var readyFired = false
-    private var lastTheme: String? = null
 
     @Before
     fun setup() {
@@ -42,7 +41,6 @@ class TerminalBridgeTest {
             onOpenSettings = { settingsOpened = true },
             onOpenServerSettings = { },
             onReady = { readyFired = true },
-            onThemeChanged = { lastTheme = it },
         )
     }
 
@@ -85,9 +83,4 @@ class TerminalBridgeTest {
         assertTrue(readyFired)
     }
 
-    @Test
-    fun `onThemeChanged forwards theme`() {
-        bridge.onThemeChanged("light")
-        assertEquals("light", lastTheme)
-    }
 }

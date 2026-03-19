@@ -15,7 +15,6 @@
           <span class="title">&gt;_Terminal</span>
           <span id="settings-btn" class="status-btn">[cfg]</span>
         </div>
-        <span id="theme-toggle">[grn]</span>
         <div id="status-indicator">
           <span id="status-text">INIT</span>
           <span id="status-dot" class="connecting"></span>
@@ -28,13 +27,6 @@
         <div id="terminal-container"></div>
 
         <button id="session-close-btn" class="hidden">[x]</button>
-
-        <div id="float-keys">
-          <button class="float-key" data-action="tab">TAB</button>
-          <button class="float-key" data-action="up">&#9650;</button>
-          <button class="float-key" data-action="down">&#9660;</button>
-          <button class="float-key" data-action="enter">RET</button>
-        </div>
 
         <div id="error-panel" class="hidden">
           <div id="error-message"></div>
@@ -50,22 +42,13 @@
         <div class="toolbar-left">
           <button id="esc-btn" class="toolbar-btn">ESC</button>
           <button id="ctrlc-btn" class="toolbar-btn">C-c</button>
+          <button id="tab-btn" class="toolbar-btn">TAB</button>
         </div>
         <div class="toolbar-right">
           <button id="up-btn" class="toolbar-btn">&#9650;</button>
           <button id="down-btn" class="toolbar-btn">&#9660;</button>
+          <button id="action-btn" class="toolbar-btn">mic/&gt;</button>
         </div>
-      </div>
-
-      <div id="controls">
-        <div
-          id="dictation-text"
-          contenteditable="true"
-          data-placeholder="> type command..."
-          role="textbox"
-          aria-multiline="true"
-        ></div>
-        <button id="action-btn" class="btn">mic/&gt;</button>
       </div>
     </div>
 

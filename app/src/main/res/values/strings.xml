@@ -22,4 +22,24 @@
     <string name="setup_copy_key">Copy to Clipboard</string>
     <string name="ssh_key_title">SSH Key</string>
     <string name="ssh_key_none">No key generated yet</string>
+
+    <string-array name="theme_entries">
+        <item>Dark</item>
+        <item>Light</item>
+        <item>System</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>dark</item>
+        <item>light</item>
+        <item>system</item>
+    </string-array>
+
+    <string-array name="icon_entries">
+        <item>Green Phosphor</item>
+        <item>Classic Color</item>
+    </string-array>
+    <string-array name="icon_values">
+        <item>green</item>
+        <item>color</item>
+    </string-array>
 </resources>

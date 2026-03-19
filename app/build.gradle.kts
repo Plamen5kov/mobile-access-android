@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.webkit)
     implementation(libs.recyclerview)
+    implementation(libs.preference)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

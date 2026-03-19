@@ -80,6 +80,8 @@ class ServerEditActivity : AppCompatActivity() {
             btnDelete.visibility = View.GONE
         }
 
+        findViewById<android.widget.TextView>(R.id.btn_back).setOnClickListener { finish() }
+
         btnSave.setOnClickListener { save() }
         btnTest.setOnClickListener { testConnection() }
         btnDelete.setOnClickListener { delete() }

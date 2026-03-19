@@ -151,7 +151,6 @@ class TerminalActivity : AppCompatActivity() {
                 })
             },
             onReady = { onWebViewReady() },
-            onThemeChanged = { theme -> prefs.theme = theme },
         )
         webView.addJavascriptInterface(bridge!!, "Android")
         webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
@@ -162,7 +161,17 @@ class TerminalActivity : AppCompatActivity() {
         startForegroundService(intent)
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
 
-        bridge?.setTheme(prefs.theme)
+        // Pass the resolved theme (dark/light) to the WebView
+        val resolvedTheme = when (prefs.themeMode) {
+            "light" -> "light"
+            "system" -> {
+                val nightMode = resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK
+                if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
+            }
+            else -> "dark"
+        }
+        bridge?.setTheme(resolvedTheme)
     }
 
     private fun onServiceReady(service: TerminalService) {

@@ -3,7 +3,6 @@ import type { NativeTerminalApi, ThemeName } from "./types";
 import { applyTheme } from "./ui";
 import { renderTabs } from "./tabs";
 
-/** Per-session status cache so tab switches can restore the correct state. */
 const sessionStatus = new Map<string, { status: string; state: string }>();
 
 function updateStatusBar(status: string, state: string) {
@@ -18,7 +17,6 @@ function updateStatusBar(status: string, state: string) {
         if (state) statusDot.classList.add(state);
     }
 
-    // Show error panel for error state and during reconnect countdown
     if (errorPanel && errorMessage) {
         if (state === "error") {
             errorMessage.textContent = status;
@@ -26,15 +24,12 @@ function updateStatusBar(status: string, state: string) {
         } else if (state === "connected") {
             errorPanel.classList.add("hidden");
         }
-        // During "connecting" state, leave panel as-is (shows countdown from error emissions)
     }
 }
 
 export function registerBridge(
     sessionManager: SessionManager,
     tabBar: HTMLElement,
-    inputField: HTMLElement,
-    sendFn: () => void,
 ): NativeTerminalApi {
     const api: NativeTerminalApi = {
         writeToTerminal(sessionId: string, data: string) {
@@ -44,10 +39,7 @@ export function registerBridge(
         },
 
         setConnectionStatus(sessionId: string, status: string, state: string) {
-            // Always cache, even for inactive sessions
             sessionStatus.set(sessionId, { status, state });
-
-            // Only update UI for the active session
             if (sessionId === sessionManager.getActiveSessionId()) {
                 updateStatusBar(status, state);
             }
@@ -67,8 +59,6 @@ export function registerBridge(
         setActiveTab(sessionId: string) {
             sessionManager.switchTo(sessionId);
             renderTabs(sessionManager, tabBar);
-
-            // Restore the status bar for the newly active session
             const cached = sessionStatus.get(sessionId);
             if (cached) {
                 updateStatusBar(cached.status, cached.state);
@@ -78,8 +68,12 @@ export function registerBridge(
         },
 
         insertTranscript(text: string, isFinal: boolean) {
-            inputField.textContent = text;
-            if (isFinal) sendFn();
+            // With direct terminal input, STT results go straight to the terminal
+            const sid = sessionManager.getActiveSessionId();
+            if (sid && text) {
+                window.Android?.sendInput(sid, text);
+                if (isFinal) window.Android?.sendInput(sid, "\r");
+            }
         },
 
         clearTerminal() {
