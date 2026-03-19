@@ -13,6 +13,11 @@
             android:entryValues="@array/theme_values"
             app:useSimpleSummaryProvider="true" />
 
+        <Preference
+            android:key="app_icon"
+            android:title="App Icon"
+            android:summary="Choose launcher icon style" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="SECURITY">

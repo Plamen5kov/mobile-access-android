@@ -6,6 +6,8 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.ListPreference
@@ -37,12 +39,7 @@ class SettingsActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        syncAppIcon()
-    }
-
-    private fun syncAppIcon() {
+    fun syncAppIcon() {
         val prefs = org.koin.java.KoinJavaComponent.inject<AppPreferences>(AppPreferences::class.java).value
         val icon = prefs.appIcon
         val pm = packageManager
@@ -80,21 +77,16 @@ class SettingsActivity : AppCompatActivity() {
             findPreference<ListPreference>("theme_mode")?.setOnPreferenceChangeListener { _, newValue ->
                 val mode = newValue as String
                 prefs.themeMode = mode
-
-                val icon = when (mode) {
-                    "light" -> "color"
-                    "system" -> {
-                        val nightMode = resources.configuration.uiMode and
-                            android.content.res.Configuration.UI_MODE_NIGHT_MASK
-                        if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) "green" else "color"
-                    }
-                    else -> "green"
-                }
-                prefs.appIcon = icon
-                // Icon syncs on next cold start via TerminalApp.syncAppIcon()
-
                 TerminalApp.applyThemeMode(mode)
                 true
+            }
+
+            findPreference<Preference>("app_icon")?.apply {
+                summary = if (prefs.appIcon == "green") "Green Phosphor" else "Classic Color"
+                setOnPreferenceClickListener {
+                    showIconPickerDialog()
+                    true
+                }
             }
 
             // SSH key
@@ -114,6 +106,36 @@ class SettingsActivity : AppCompatActivity() {
             } else {
                 getString(R.string.ssh_key_none)
             }
+        }
+
+        private fun showIconPickerDialog() {
+            val activity = requireActivity()
+            val dialogView = layoutInflater.inflate(R.layout.dialog_icon_picker, null)
+
+            // Set icon previews
+            dialogView.findViewById<ImageView>(R.id.preview_green)
+                .setImageResource(R.mipmap.ic_launcher_green)
+            dialogView.findViewById<ImageView>(R.id.preview_color)
+                .setImageResource(R.mipmap.ic_launcher_color)
+
+            val dialog = AlertDialog.Builder(activity)
+                .setTitle("App Icon")
+                .setView(dialogView)
+                .setNegativeButton("Close", null)
+                .create()
+
+            fun selectIcon(icon: String) {
+                prefs.appIcon = icon
+                (activity as? SettingsActivity)?.syncAppIcon()
+                findPreference<Preference>("app_icon")?.summary =
+                    if (icon == "green") "Green Phosphor" else "Classic Color"
+                dialog.dismiss()
+            }
+
+            dialogView.findViewById<View>(R.id.pick_green).setOnClickListener { selectIcon("green") }
+            dialogView.findViewById<View>(R.id.pick_color).setOnClickListener { selectIcon("color") }
+
+            dialog.show()
         }
 
         private fun showSshKeyDialog() {
