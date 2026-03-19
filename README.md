@@ -6,10 +6,12 @@ Built for GrapheneOS on Pixel 9a. No Google Play Services required.
 
 ## Screenshots
 
-| Dark | Light |
-|------|-------|
-| ![Home dark](screenshots/home-dark.webp) | ![Home light](screenshots/home-light.webp) |
-| ![Terminal dark](screenshots/terminal-dark.webp) | ![Terminal light](screenshots/terminal-light.webp) |
+<p>
+  <img src="screenshots/home-dark.webp" width="180" alt="Home dark">
+  <img src="screenshots/terminal-dark.webp" width="180" alt="Terminal dark">
+  <img src="screenshots/home-light.webp" width="180" alt="Home light">
+  <img src="screenshots/terminal-light.webp" width="180" alt="Terminal light">
+</p>
 
 ## What it does
 
