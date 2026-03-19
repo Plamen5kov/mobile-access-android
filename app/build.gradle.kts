@@ -11,8 +11,10 @@ android {
         applicationId = "xyz.fivekov.terminal"
         minSdk = 35
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = providers.environmentVariable("VERSION_CODE")
+            .orElse("1").get().toInt()
+        versionName = providers.gradleProperty("appVersionName")
+            .orElse("0.0.0").get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
