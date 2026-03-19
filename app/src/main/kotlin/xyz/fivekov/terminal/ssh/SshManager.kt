@@ -31,6 +31,8 @@ class SshManager(
     private var session: Session? = null
     private var readJob: Job? = null
     private var keepAliveJob: Job? = null
+    private var lastCols = 80
+    private var lastRows = 24
 
     private val _state = MutableStateFlow(ConnectionState.DISCONNECTED)
     val state: StateFlow<ConnectionState> = _state
@@ -73,7 +75,7 @@ class SshManager(
                 connection = conn
 
                 val sess = conn.openSession()
-                sess.requestPTY("xterm-256color", 80, 24, 0, 0, null)
+                sess.requestPTY("xterm-256color", lastCols, lastRows, 0, 0, null)
 
                 val command = tmuxHelper.buildAttachCommand(config.effectiveTmuxSession)
                 sess.execCommand(command)
@@ -106,6 +108,8 @@ class SshManager(
     }
 
     fun sendResize(cols: Int, rows: Int) {
+        lastCols = cols
+        lastRows = rows
         session?.resizePTY(cols, rows, 0, 0)
     }
 

@@ -119,15 +119,18 @@ export class SessionManager {
         if (target) {
             target.container.style.display = "block";
             this.activeSessionId = sessionId;
-            target.fitAddon.fit();
-            target.terminal.focus();
 
-            // Notify Kotlin of new size
-            window.Android?.sendResize(
-                sessionId,
-                target.terminal.cols,
-                target.terminal.rows,
-            );
+            // Defer fit until after the browser completes layout for the
+            // newly-visible container, otherwise dimensions are stale.
+            requestAnimationFrame(() => {
+                target.fitAddon.fit();
+                target.terminal.focus();
+                window.Android?.sendResize(
+                    sessionId,
+                    target.terminal.cols,
+                    target.terminal.rows,
+                );
+            });
         }
     }
 

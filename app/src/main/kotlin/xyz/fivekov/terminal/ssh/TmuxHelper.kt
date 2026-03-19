@@ -9,6 +9,7 @@ class TmuxHelper {
     fun buildAttachCommand(sessionName: String = DEFAULT_SESSION): String {
         return """
             if command -v tmux >/dev/null 2>&1; then
+                tmux set-option -g aggressive-resize on 2>/dev/null
                 tmux new-session -As $sessionName
             else
                 exec ${'$'}SHELL -l

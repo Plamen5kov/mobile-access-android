@@ -242,9 +242,12 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     private fun setupKeyboardInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(webView) { view, insets ->
+        val container = findViewById<android.view.View>(R.id.webview_container)
+        ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+            val systemBarInsets = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
+            )
             val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(
                 systemBarInsets.left,
                 systemBarInsets.top,
