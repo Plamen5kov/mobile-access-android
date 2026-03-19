@@ -36,6 +36,31 @@ That's it. No custom server software, no WebSocket proxy, no middleware.
   # If tmux is not installed, it falls back to a plain shell
   ```
 
+### Managing tmux sessions on the server
+
+The app auto-creates and attaches to tmux sessions. You can also manage them from the server directly.
+
+```bash
+# List all sessions
+tmux list-sessions
+
+# Create a new detached session
+tmux new-session -d -s my-session
+
+# Attach to a session from the server
+tmux attach -t my-session
+
+# Kill a specific session
+tmux kill-session -t my-session
+
+# Kill all sessions
+tmux kill-server
+```
+
+To connect to an existing tmux session from the app, edit the server in the app, expand Advanced, and set the tmux session name to match (e.g., `my-session`). The default is `mobile-terminal`.
+
+When you close a tab in the app, it detaches from tmux (the session stays alive on the server). Reconnecting reattaches with full history preserved.
+
 ### Network access
 
 The phone needs to reach the server's SSH port (default 22). Options:
