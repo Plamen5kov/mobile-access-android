@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,29 +41,3 @@ jobs:
 
       - name: Build debug APK
         run: ./gradlew assembleDebug
-
-      - name: Rename APK
-        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/terminal-debug.apk
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: terminal-debug-apk
-          path: app/build/outputs/apk/debug/terminal-debug.apk
-
-      - name: Update latest release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: Latest Build
-          body: |
-            Latest debug APK built from `main` branch.
-
-            **Install:** Download `terminal-debug.apk` and sideload via `adb install` or file manager.
-
-            _Updated: ${{ github.event.head_commit.timestamp }}_
-            _Commit: ${{ github.sha }}_
-          prerelease: true
-          files: app/build/outputs/apk/debug/terminal-debug.apk
-          make_latest: true
