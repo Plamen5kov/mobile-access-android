@@ -57,14 +57,18 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
-      - name: Rename APK
+      - name: Rename APK and generate checksum
         env:
           VERSION: ${{ steps.version.outputs.name }}
-        run: mv app/build/outputs/apk/release/app-release.apk "terminal-${VERSION}.apk"
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk "terminal-${VERSION}.apk"
+          sha256sum "terminal-${VERSION}.apk" > "terminal-${VERSION}.apk.sha256"
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           name: Terminal ${{ steps.version.outputs.name }}
           generate_release_notes: true
-          files: terminal-${{ steps.version.outputs.name }}.apk
+          files: |
+            terminal-${{ steps.version.outputs.name }}.apk
+            terminal-${{ steps.version.outputs.name }}.apk.sha256
