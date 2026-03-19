@@ -65,7 +65,7 @@ jobs:
           sha256sum "terminal-${VERSION}.apk" > "terminal-${VERSION}.apk.sha256"
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           name: Terminal ${{ steps.version.outputs.name }}
           generate_release_notes: true
