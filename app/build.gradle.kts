@@ -23,7 +23,7 @@ android {
         create("release") {
             val keystorePath = providers.environmentVariable("KEYSTORE_PATH")
             if (keystorePath.isPresent) {
-                storeFile = file(keystorePath.get())
+                storeFile = rootProject.file(keystorePath.get())
                 storePassword = providers.environmentVariable("KEYSTORE_PASSWORD").get()
                 keyAlias = providers.environmentVariable("KEY_ALIAS").get()
                 keyPassword = providers.environmentVariable("KEY_PASSWORD").get()
