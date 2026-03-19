@@ -5,24 +5,24 @@ import { renderTabs } from "./tabs";
 
 const sessionStatus = new Map<string, { status: string; state: string }>();
 
-function updateStatusBar(status: string, state: string) {
-    const statusText = document.getElementById("status-text");
-    const statusDot = document.getElementById("status-dot");
-    const errorPanel = document.getElementById("error-panel");
-    const errorMessage = document.getElementById("error-message");
+const statusTextEl = document.getElementById("status-text");
+const statusDotEl = document.getElementById("status-dot");
+const errorPanelEl = document.getElementById("error-panel");
+const errorMessageEl = document.getElementById("error-message");
 
-    if (statusText) statusText.textContent = status;
-    if (statusDot) {
-        statusDot.className = "";
-        if (state) statusDot.classList.add(state);
+function updateStatusBar(status: string, state: string) {
+    if (statusTextEl) statusTextEl.textContent = status;
+    if (statusDotEl) {
+        statusDotEl.className = "";
+        if (state) statusDotEl.classList.add(state);
     }
 
-    if (errorPanel && errorMessage) {
+    if (errorPanelEl && errorMessageEl) {
         if (state === "error") {
-            errorMessage.textContent = status;
-            errorPanel.classList.remove("hidden");
+            errorMessageEl.textContent = status;
+            errorPanelEl.classList.remove("hidden");
         } else if (state === "connected") {
-            errorPanel.classList.add("hidden");
+            errorPanelEl.classList.add("hidden");
         }
     }
 }
@@ -33,9 +33,11 @@ export function registerBridge(
 ): NativeTerminalApi {
     const api: NativeTerminalApi = {
         writeToTerminal(sessionId: string, data: string) {
-            sessionManager.getTerminal(sessionId)?.write(data);
             const term = sessionManager.getTerminal(sessionId);
-            if (term) requestAnimationFrame(() => term.scrollToBottom());
+            if (term) {
+                term.write(data);
+                requestAnimationFrame(() => term.scrollToBottom());
+            }
         },
 
         setConnectionStatus(sessionId: string, status: string, state: string) {
@@ -68,7 +70,6 @@ export function registerBridge(
         },
 
         insertTranscript(text: string, isFinal: boolean) {
-            // With direct terminal input, STT results go straight to the terminal
             const sid = sessionManager.getActiveSessionId();
             if (sid && text) {
                 window.Android?.sendInput(sid, text);

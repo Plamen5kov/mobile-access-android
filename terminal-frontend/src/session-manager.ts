@@ -1,4 +1,4 @@
-import { Terminal } from "@xterm/xterm";
+import { Terminal, type IDisposable } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { CanvasAddon } from "@xterm/addon-canvas";
@@ -14,6 +14,7 @@ interface SessionEntry {
     terminal: Terminal;
     fitAddon: FitAddon;
     container: HTMLDivElement;
+    disposables: IDisposable[];
 }
 
 export class SessionManager {
@@ -71,8 +72,7 @@ export class SessionManager {
             terminal.loadAddon(new CanvasAddon());
         }
 
-        // Route keystrokes with session ID
-        terminal.onData((data) => {
+        const dataListener = terminal.onData((data) => {
             window.Android?.sendInput(sessionId, data);
         });
 
@@ -83,6 +83,7 @@ export class SessionManager {
             terminal,
             fitAddon,
             container,
+            disposables: [dataListener],
         };
         this.sessions.set(sessionId, entry);
 
@@ -93,6 +94,7 @@ export class SessionManager {
         const entry = this.sessions.get(sessionId);
         if (!entry) return;
 
+        entry.disposables.forEach((d) => d.dispose());
         entry.terminal.dispose();
         entry.container.remove();
         this.sessions.delete(sessionId);

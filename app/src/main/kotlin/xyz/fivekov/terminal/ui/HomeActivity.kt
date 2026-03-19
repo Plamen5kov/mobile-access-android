@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,8 +27,11 @@ class HomeActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_SERVER_ID = "server_id"
-        private const val REQUEST_ADD_EDIT = 1
     }
+
+    private val editServerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { refreshList() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,24 +85,13 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun addServer() {
-        startActivityForResult(
-            Intent(this, ServerEditActivity::class.java),
-            REQUEST_ADD_EDIT
-        )
+        editServerLauncher.launch(Intent(this, ServerEditActivity::class.java))
     }
 
     private fun editServer(server: ServerConfig) {
         val intent = Intent(this, ServerEditActivity::class.java).apply {
             putExtra(EXTRA_SERVER_ID, server.id)
         }
-        startActivityForResult(intent, REQUEST_ADD_EDIT)
-    }
-
-    @Deprecated("Use ActivityResult API")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ADD_EDIT) {
-            refreshList()
-        }
+        editServerLauncher.launch(intent)
     }
 }

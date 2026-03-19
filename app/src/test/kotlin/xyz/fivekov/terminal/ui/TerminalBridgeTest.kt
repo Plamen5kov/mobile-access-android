@@ -1,20 +1,14 @@
 package xyz.fivekov.terminal.ui
 
-import android.webkit.WebView
-import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.koin.core.context.stopKoin
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class TerminalBridgeTest {
 
-    private lateinit var webView: WebView
     private lateinit var bridge: TerminalBridge
+    private val evaluatedScripts = mutableListOf<String>()
     private var lastSessionId: String? = null
     private var lastInput: String? = null
     private var lastResizeSession: String? = null
@@ -27,11 +21,10 @@ class TerminalBridgeTest {
 
     @Before
     fun setup() {
-        stopKoin()
-        webView = WebView(ApplicationProvider.getApplicationContext())
+        evaluatedScripts.clear()
 
         bridge = TerminalBridge(
-            webView = webView,
+            js = { script -> evaluatedScripts.add(script) },
             onInput = { sid, data -> lastSessionId = sid; lastInput = data },
             onResize = { sid, cols, rows -> lastResizeSession = sid; lastCols = cols; lastRows = rows },
             onStartListening = {},

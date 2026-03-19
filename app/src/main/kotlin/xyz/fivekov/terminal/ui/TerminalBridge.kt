@@ -3,8 +3,18 @@ package xyz.fivekov.terminal.ui
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 
+fun interface JsEvaluator {
+    fun evaluate(script: String)
+}
+
+class WebViewJsEvaluator(private val webView: WebView) : JsEvaluator {
+    override fun evaluate(script: String) {
+        webView.post { webView.evaluateJavascript(script, null) }
+    }
+}
+
 class TerminalBridge(
-    private val webView: WebView,
+    private val js: JsEvaluator,
     private val onInput: (sessionId: String, data: String) -> Unit,
     private val onResize: (sessionId: String, cols: Int, rows: Int) -> Unit,
     private val onStartListening: () -> Unit,
@@ -66,15 +76,15 @@ class TerminalBridge(
 
     fun addTab(sessionId: String, name: String, serverId: String) {
         val escapedName = name.replace("'", "\\'")
-        evalJs("window.NativeTerminal.addTab('$sessionId', '$escapedName', '$serverId')")
+        js.evaluate("window.NativeTerminal.addTab('$sessionId', '$escapedName', '$serverId')")
     }
 
     fun removeTab(sessionId: String) {
-        evalJs("window.NativeTerminal.removeTab('$sessionId')")
+        js.evaluate("window.NativeTerminal.removeTab('$sessionId')")
     }
 
     fun setActiveTab(sessionId: String) {
-        evalJs("window.NativeTerminal.setActiveTab('$sessionId')")
+        js.evaluate("window.NativeTerminal.setActiveTab('$sessionId')")
     }
 
     fun writeToTerminal(sessionId: String, data: String) {
@@ -83,24 +93,20 @@ class TerminalBridge(
             .replace("'", "\\'")
             .replace("\n", "\\n")
             .replace("\r", "\\r")
-        evalJs("window.NativeTerminal.writeToTerminal('$sessionId', '$escaped')")
+        js.evaluate("window.NativeTerminal.writeToTerminal('$sessionId', '$escaped')")
     }
 
     fun setConnectionStatus(sessionId: String, status: String, state: String) {
         val escapedStatus = status.replace("'", "\\'")
-        evalJs("window.NativeTerminal.setConnectionStatus('$sessionId', '$escapedStatus', '$state')")
+        js.evaluate("window.NativeTerminal.setConnectionStatus('$sessionId', '$escapedStatus', '$state')")
     }
 
     fun insertTranscript(text: String, isFinal: Boolean) {
         val escaped = text.replace("'", "\\'")
-        evalJs("window.NativeTerminal.insertTranscript('$escaped', $isFinal)")
+        js.evaluate("window.NativeTerminal.insertTranscript('$escaped', $isFinal)")
     }
 
     fun setTheme(theme: String) {
-        evalJs("window.NativeTerminal.setTheme('$theme')")
-    }
-
-    private fun evalJs(js: String) {
-        webView.post { webView.evaluateJavascript(js, null) }
+        js.evaluate("window.NativeTerminal.setTheme('$theme')")
     }
 }

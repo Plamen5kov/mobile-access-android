@@ -1,5 +1,6 @@
 package xyz.fivekov.terminal.data
 
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
@@ -10,17 +11,22 @@ class ServerRepository(private val prefs: AppPreferences) {
 
     fun getAll(): List<ServerConfig> {
         val json = storage.getString(KEY_SERVERS, "[]") ?: "[]"
-        val array = JSONArray(json)
-        return (0 until array.length()).map { i ->
-            val obj = array.getJSONObject(i)
-            ServerConfig(
-                id = obj.getString("id"),
-                name = obj.optString("name", ""),
-                hostname = obj.getString("hostname"),
-                port = obj.optInt("port", 22),
-                username = obj.getString("username"),
-                tmuxSession = obj.optString("tmuxSession", ""),
-            )
+        return try {
+            val array = JSONArray(json)
+            (0 until array.length()).map { i ->
+                val obj = array.getJSONObject(i)
+                ServerConfig(
+                    id = obj.getString("id"),
+                    name = obj.optString("name", ""),
+                    hostname = obj.getString("hostname"),
+                    port = obj.optInt("port", 22),
+                    username = obj.getString("username"),
+                    tmuxSession = obj.optString("tmuxSession", ""),
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("ServerRepository", "Failed to parse servers JSON", e)
+            emptyList()
         }
     }
 

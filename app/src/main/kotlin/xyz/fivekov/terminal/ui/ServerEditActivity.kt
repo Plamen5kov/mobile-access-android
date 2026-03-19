@@ -143,11 +143,14 @@ class ServerEditActivity : AppCompatActivity() {
             try {
                 val result = withContext(Dispatchers.IO) {
                     val conn = com.trilead.ssh2.Connection(hostname, port)
-                    conn.connect(null, 5000, 5000)
-                    val keyPair = keyManager.getKeyPair()!!
-                    val ok = conn.authenticateWithPublicKey(username, keyPair)
-                    conn.close()
-                    ok
+                    try {
+                        conn.connect(null, 5000, 5000)
+                        val keyPair = keyManager.getKeyPair()
+                            ?: throw IllegalStateException("No SSH key pair found")
+                        conn.authenticateWithPublicKey(username, keyPair)
+                    } finally {
+                        conn.close()
+                    }
                 }
                 if (result) {
                     Toast.makeText(this@ServerEditActivity, "Connection successful", Toast.LENGTH_SHORT).show()

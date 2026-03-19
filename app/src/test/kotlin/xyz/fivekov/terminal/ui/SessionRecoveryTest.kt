@@ -1,7 +1,5 @@
 package xyz.fivekov.terminal.ui
 
-import android.webkit.WebView
-import androidx.test.core.app.ApplicationProvider
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -114,9 +112,8 @@ class SessionRecoveryTest {
     fun `bridge callbacks route to correct server for error panel settings`() {
         var openedServerId: String? = null
 
-        val webView = WebView(ApplicationProvider.getApplicationContext())
         val bridge = TerminalBridge(
-            webView = webView,
+            js = { },
             onInput = { _, _ -> },
             onResize = { _, _, _ -> },
             onStartListening = {},
@@ -137,9 +134,8 @@ class SessionRecoveryTest {
     fun `bridge callbacks can destroy session during error state`() {
         var destroyedSessionId: String? = null
 
-        val webView = WebView(ApplicationProvider.getApplicationContext())
         val bridge = TerminalBridge(
-            webView = webView,
+            js = { },
             onInput = { _, _ -> },
             onResize = { _, _, _ -> },
             onStartListening = {},

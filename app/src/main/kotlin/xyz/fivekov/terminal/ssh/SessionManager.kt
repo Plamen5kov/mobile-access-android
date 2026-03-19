@@ -12,13 +12,17 @@ import xyz.fivekov.terminal.data.SessionInfo
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
+private data class SessionData(
+    val sshManager: SshManager,
+    val scope: CoroutineScope,
+    val config: ServerConfig,
+)
+
 class SessionManager(
     private val keyManager: SshKeyManager,
     private val tmuxHelper: TmuxHelper,
 ) {
-    private val sessions = ConcurrentHashMap<String, SshManager>()
-    private val sessionScopes = ConcurrentHashMap<String, CoroutineScope>()
-    private val sessionConfigs = ConcurrentHashMap<String, ServerConfig>()
+    private val sessions = ConcurrentHashMap<String, SessionData>()
 
     private val _activeSessionId = MutableStateFlow<String?>(null)
     val activeSessionId: StateFlow<String?> = _activeSessionId
@@ -28,26 +32,19 @@ class SessionManager(
 
     fun createSession(config: ServerConfig, parentScope: CoroutineScope): String {
         val sessionId = UUID.randomUUID().toString()
-
-        // Each session gets its own SupervisorJob scope so failures are isolated
         val sessionScope = CoroutineScope(parentScope.coroutineContext + SupervisorJob())
 
         val sshManager = SshManager(keyManager, tmuxHelper)
         sshManager.attach(sessionScope)
 
-        sessions[sessionId] = sshManager
-        sessionScopes[sessionId] = sessionScope
-        sessionConfigs[sessionId] = config
+        sessions[sessionId] = SessionData(sshManager, sessionScope, config)
 
-        // Observe state changes to update session list
         sessionScope.launch {
             sshManager.state.collect { updateSessionList() }
         }
 
-        // Connect
         sessionScope.launch { sshManager.connect(config) }
 
-        // If this is the first session, make it active
         if (_activeSessionId.value == null) {
             _activeSessionId.value = sessionId
         }
@@ -57,19 +54,15 @@ class SessionManager(
     }
 
     fun destroySession(sessionId: String) {
-        val sshManager = sessions.remove(sessionId) ?: return
-        val scope = sessionScopes.remove(sessionId)
-        sessionConfigs.remove(sessionId)
+        val data = sessions.remove(sessionId) ?: return
 
-        // Cancel the session's scope (stops all coroutines including reconnect loops)
-        scope?.cancel()
+        data.scope.launch(Dispatchers.IO) {
+            try {
+                data.sshManager.disconnect()
+            } catch (_: Exception) {}
+            data.scope.cancel()
+        }
 
-        // Disconnect in a best-effort way
-        try {
-            kotlinx.coroutines.runBlocking { sshManager.disconnect() }
-        } catch (_: Exception) {}
-
-        // If the active session was destroyed, switch to another
         if (_activeSessionId.value == sessionId) {
             _activeSessionId.value = sessions.keys.firstOrNull()
         }
@@ -83,28 +76,27 @@ class SessionManager(
         }
     }
 
-    fun getSession(sessionId: String): SshManager? = sessions[sessionId]
+    fun getSession(sessionId: String): SshManager? = sessions[sessionId]?.sshManager
 
     fun getActiveSession(): SshManager? {
         val id = _activeSessionId.value ?: return null
-        return sessions[id]
+        return sessions[id]?.sshManager
     }
 
     fun sendInput(sessionId: String, data: String) {
-        sessions[sessionId]?.sendInput(data)
+        sessions[sessionId]?.sshManager?.sendInput(data)
     }
 
     fun sendResize(sessionId: String, cols: Int, rows: Int) {
-        sessions[sessionId]?.sendResize(cols, rows)
+        sessions[sessionId]?.sshManager?.sendResize(cols, rows)
     }
 
     suspend fun reconnectSession(sessionId: String) {
-        sessions[sessionId]?.reconnect()
+        sessions[sessionId]?.sshManager?.reconnect()
     }
 
-    /** Find an existing session for a given server ID. */
     fun findSessionByServerId(serverId: String): String? {
-        return sessionConfigs.entries.find { it.value.id == serverId }?.key
+        return sessions.entries.find { it.value.config.id == serverId }?.key
     }
 
     fun getAllSessionIds(): Set<String> = sessions.keys.toSet()
@@ -114,13 +106,12 @@ class SessionManager(
     }
 
     private fun updateSessionList() {
-        _sessionList.value = sessions.map { (id, manager) ->
-            val config = sessionConfigs[id]
+        _sessionList.value = sessions.map { (id, data) ->
             SessionInfo(
                 sessionId = id,
-                serverId = config?.id ?: "",
-                serverDisplayName = config?.displayName ?: "Unknown",
-                state = manager.state.value,
+                serverId = data.config.id,
+                serverDisplayName = data.config.displayName,
+                state = data.sshManager.state.value,
             )
         }
     }

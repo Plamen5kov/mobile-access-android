@@ -1,9 +1,22 @@
 import type { SessionManager } from "./session-manager";
 
+let delegateInstalled = false;
+
 export function renderTabs(
     sessionManager: SessionManager,
     tabBar: HTMLElement,
 ): void {
+    if (!delegateInstalled) {
+        tabBar.addEventListener("click", (e) => {
+            const tab = (e.target as HTMLElement).closest<HTMLElement>(".tab");
+            const sessionId = tab?.dataset.sessionId;
+            if (sessionId) {
+                window.NativeTerminal?.setActiveTab(sessionId);
+            }
+        });
+        delegateInstalled = true;
+    }
+
     const entries = sessionManager.getAllEntries();
     const activeId = sessionManager.getActiveSessionId();
 
@@ -19,17 +32,11 @@ export function renderTabs(
         label.textContent = name;
         tab.appendChild(label);
 
-        tab.addEventListener("click", () => {
-            // Route through NativeTerminal so status bar gets restored
-            window.NativeTerminal.setActiveTab(sessionId);
-        });
-
         tabBar.appendChild(tab);
     }
 
     tabBar.style.display = entries.length > 0 ? "flex" : "none";
 
-    // Show/hide the session close button
     const closeBtn = document.getElementById("session-close-btn");
     if (closeBtn) {
         closeBtn.classList.toggle("hidden", entries.length === 0);

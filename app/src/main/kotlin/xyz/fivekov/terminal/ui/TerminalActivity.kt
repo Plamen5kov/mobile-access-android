@@ -125,7 +125,7 @@ class TerminalActivity : AppCompatActivity() {
         }
 
         bridge = TerminalBridge(
-            webView = webView,
+            js = WebViewJsEvaluator(webView),
             onInput = { sessionId, data -> terminalService?.sendInput(sessionId, data) },
             onResize = { sessionId, cols, rows -> terminalService?.sendResize(sessionId, cols, rows) },
             onStartListening = { /* Phase 2: STT */ },

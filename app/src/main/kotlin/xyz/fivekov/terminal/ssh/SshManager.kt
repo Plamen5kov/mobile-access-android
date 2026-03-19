@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import xyz.fivekov.terminal.data.ServerConfig
 
@@ -27,6 +29,7 @@ class SshManager(
     private val keyManager: SshKeyManager,
     private val tmuxHelper: TmuxHelper,
 ) {
+    private val mutex = Mutex()
     private var connection: Connection? = null
     private var session: Session? = null
     private var readJob: Job? = null
@@ -55,31 +58,14 @@ class SshManager(
         _state.value = ConnectionState.CONNECTING
 
         try {
-            withContext(Dispatchers.IO) {
-                val conn = Connection(config.hostname, config.port)
-                conn.connect(null, 10000, 10000)
+            val (conn, sess) = withContext(Dispatchers.IO) {
+                val conn = establishConnection(config)
+                val sess = openShell(conn, config)
+                conn to sess
+            }
 
-                val keyPair = keyManager.getKeyPair()
-                    ?: throw IllegalStateException("No SSH key pair generated")
-
-                val authenticated = conn.authenticateWithPublicKey(
-                    config.username,
-                    keyPair
-                )
-
-                if (!authenticated) {
-                    conn.close()
-                    throw SecurityException("SSH authentication failed")
-                }
-
+            mutex.withLock {
                 connection = conn
-
-                val sess = conn.openSession()
-                sess.requestPTY("xterm-256color", lastCols, lastRows, 0, 0, null)
-
-                val command = tmuxHelper.buildAttachCommand(config.effectiveTmuxSession)
-                sess.execCommand(command)
-
                 session = sess
             }
 
@@ -91,6 +77,43 @@ class SshManager(
         } catch (e: Exception) {
             _state.value = ConnectionState.DISCONNECTED
             _error.emit(e.message ?: "Connection failed")
+        }
+    }
+
+    private fun establishConnection(config: ServerConfig): Connection {
+        val conn = Connection(config.hostname, config.port)
+        try {
+            conn.connect(null, 10000, 10000)
+
+            val keyPair = keyManager.getKeyPair()
+                ?: throw IllegalStateException("No SSH key pair generated")
+
+            val authenticated = conn.authenticateWithPublicKey(
+                config.username,
+                keyPair,
+            )
+
+            if (!authenticated) {
+                throw SecurityException("SSH authentication failed")
+            }
+
+            return conn
+        } catch (e: Exception) {
+            conn.close()
+            throw e
+        }
+    }
+
+    private fun openShell(conn: Connection, config: ServerConfig): Session {
+        val sess = conn.openSession()
+        try {
+            sess.requestPTY("xterm-256color", lastCols, lastRows, 0, 0, null)
+            val command = tmuxHelper.buildAttachCommand(config.effectiveTmuxSession)
+            sess.execCommand(command)
+            return sess
+        } catch (e: Exception) {
+            sess.close()
+            throw e
         }
     }
 
@@ -110,31 +133,34 @@ class SshManager(
     fun sendResize(cols: Int, rows: Int) {
         lastCols = cols
         lastRows = rows
-        session?.resizePTY(cols, rows, 0, 0)
+        try {
+            session?.resizePTY(cols, rows, 0, 0)
+        } catch (e: Exception) {
+            scope?.launch { _error.emit("Resize failed: ${e.message}") }
+        }
     }
 
-    /** Gracefully disconnect: detach from tmux (keeps session alive), then close SSH. */
     suspend fun disconnect() {
         readJob?.cancel()
         keepAliveJob?.cancel()
         withContext(Dispatchers.IO) {
-            // Send tmux detach so the server-side session stays alive
             try {
-                val sess = session
-                if (sess != null) {
+                session?.let { sess ->
                     sess.stdin.write(tmuxHelper.buildDetachCommand().toByteArray())
                     sess.stdin.write("\n".toByteArray())
                     sess.stdin.flush()
-                    Thread.sleep(100) // Brief wait for detach to process
+                    delay(100)
                 }
             } catch (_: Exception) {
                 // Best effort; session may already be closed
             }
-            session?.close()
-            connection?.close()
+            mutex.withLock {
+                session?.close()
+                connection?.close()
+                session = null
+                connection = null
+            }
         }
-        session = null
-        connection = null
         _state.value = ConnectionState.DISCONNECTED
     }
 
@@ -144,7 +170,6 @@ class SshManager(
         disconnect()
 
         var attempt = 0
-        val maxDelay = 30_000L
         while (true) {
             attempt++
             try {
@@ -156,11 +181,9 @@ class SshManager(
                 // will retry
             }
 
-            // Exponential backoff: 2s, 4s, 8s, 16s, 30s max
-            val delayMs = minOf(2000L * (1 shl minOf(attempt - 1, 4)), maxDelay)
+            val delayMs = calculateBackoffDelay(attempt)
             _state.value = ConnectionState.DISCONNECTED
 
-            // Emit countdown so UI can show remaining time
             val steps = (delayMs / 1000).toInt()
             for (s in steps downTo 1) {
                 _error.emit("Reconnecting in ${s}s...")
@@ -169,6 +192,11 @@ class SshManager(
 
             _state.value = ConnectionState.RECONNECTING
         }
+    }
+
+    private fun calculateBackoffDelay(attempt: Int): Long {
+        val maxDelay = 30_000L
+        return minOf(2000L * (1 shl minOf(attempt - 1, 4)), maxDelay)
     }
 
     private fun startReading() {
