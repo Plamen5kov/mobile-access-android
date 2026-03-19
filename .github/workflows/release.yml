@@ -9,7 +9,11 @@ permissions:
   contents: write
 
 jobs:
+  build-and-test:
+    uses: ./.github/workflows/android.yml
+
   release:
+    needs: build-and-test
     runs-on: ubuntu-latest
 
     env:
@@ -41,12 +45,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
-
-      - name: Run detekt
-        run: ./gradlew detekt
-
-      - name: Run tests
-        run: ./gradlew testDebugUnitTest
 
       - name: Build APK
         run: ./gradlew assembleDebug
