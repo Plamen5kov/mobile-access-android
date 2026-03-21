@@ -68,8 +68,7 @@ sed -i "s/appVersionName=$CURRENT/appVersionName=$NEW_VERSION/" "$PROPS_FILE"
 git add "$PROPS_FILE"
 git commit -m "chore: bump version to $NEW_VERSION"
 git tag "$TAG"
-git push
-git push origin "$TAG"
+git push --atomic origin main "$TAG"
 
 echo ""
 echo "  Released $TAG"
