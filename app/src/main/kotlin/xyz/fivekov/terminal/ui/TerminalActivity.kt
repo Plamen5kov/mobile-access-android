@@ -296,7 +296,7 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     private fun startSherpaRecognition() {
-        val sherpa = sherpaRecognizer ?: SherpaRecognizer(assets).also {
+        val sherpa = sherpaRecognizer ?: SherpaRecognizer(this).also {
             sherpaRecognizer = it
         }
 

@@ -1,10 +1,14 @@
 package xyz.fivekov.terminal.speech
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.k2fsa.sherpa.onnx.OnlineModelConfig
 import com.k2fsa.sherpa.onnx.OnlineRecognizer
 import com.k2fsa.sherpa.onnx.OnlineRecognizerConfig
@@ -19,7 +23,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SherpaRecognizer(private val assetManager: AssetManager) {
+class SherpaRecognizer(private val context: Context) {
+
+    private val assetManager: AssetManager = context.assets
 
     companion object {
         private const val TAG = "SherpaSTT"
@@ -64,6 +70,12 @@ class SherpaRecognizer(private val assetManager: AssetManager) {
 
     fun startListening(scope: CoroutineScope) {
         if (recordingJob?.isActive == true) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            onError?.invoke("Microphone permission not granted")
+            return
+        }
 
         recordingJob = scope.launch(Dispatchers.Default) {
             var record: AudioRecord? = null
