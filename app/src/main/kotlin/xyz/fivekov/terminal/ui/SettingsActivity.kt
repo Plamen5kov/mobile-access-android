@@ -23,15 +23,14 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "SETTINGS"
-
-        findViewById<View>(android.R.id.content).fitsSystemWindows = true
 
         if (savedInstanceState == null) {
             supportFragmentManager
                 .beginTransaction()
-                .replace(android.R.id.content, SettingsFragment())
+                .replace(R.id.settings_container, SettingsFragment())
                 .commit()
         }
     }

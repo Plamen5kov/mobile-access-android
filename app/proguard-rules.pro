@@ -19,6 +19,9 @@
 -dontwarn kotlinx.coroutines.**
 -keep interface kotlin.coroutines.** { *; }
 
+# sherpa-onnx - JNI reflection needs all fields and methods preserved
+-keep class com.k2fsa.sherpa.onnx.** { *; }
+
 # Preserve stack trace line numbers
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
