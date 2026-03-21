@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">2RT</string>
     <string name="tile_label">Terminal</string>
     <string name="notification_connected">Connected to %s</string>
     <string name="notification_connecting">Connecting to %s…</string>

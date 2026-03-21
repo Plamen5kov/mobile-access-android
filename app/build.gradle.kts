@@ -15,6 +15,7 @@ android {
             .orElse("1").get().toInt()
         versionName = providers.gradleProperty("appVersionName")
             .orElse("0.0.0").get()
+        resValue("string", "app_name", "2RT")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,6 +45,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            resValue("string", "app_name", "RT-DBug")
         }
     }
 
