@@ -1,21 +1,29 @@
 package xyz.fivekov.terminal.ui
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
 import android.os.IBinder
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -40,6 +48,15 @@ class TerminalActivity : AppCompatActivity() {
     private var serviceBound = false
 
     private val observationJobs = mutableMapOf<String, List<Job>>()
+
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListening = false
+
+    private val audioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) startSpeechRecognition()
+    }
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -128,8 +145,8 @@ class TerminalActivity : AppCompatActivity() {
             js = WebViewJsEvaluator(webView),
             onInput = { sessionId, data -> terminalService?.sendInput(sessionId, data) },
             onResize = { sessionId, cols, rows -> terminalService?.sendResize(sessionId, cols, rows) },
-            onStartListening = { /* Phase 2: STT */ },
-            onStopListening = { /* Phase 2: STT */ },
+            onStartListening = { requestSpeechRecognition() },
+            onStopListening = { stopSpeechRecognition() },
             onReconnect = { sessionId ->
                 lifecycleScope.launch {
                     terminalService?.reconnectSession(sessionId)
@@ -241,6 +258,73 @@ class TerminalActivity : AppCompatActivity() {
         observationJobs[sessionId] = listOf(stateJob, outputJob, errorJob)
     }
 
+    private fun requestSpeechRecognition() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            return
+        }
+        startSpeechRecognition()
+    }
+
+    private fun startSpeechRecognition() {
+        if (isListening) return
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            Log.w("TerminalSTT", "Speech recognition not available on this device")
+            bridge?.insertTranscript("[Speech recognition unavailable]", true)
+            return
+        }
+
+        isListening = true
+        val recognizer = SpeechRecognizer.createSpeechRecognizer(this)
+        speechRecognizer = recognizer
+
+        recognizer.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+
+            override fun onPartialResults(partialResults: Bundle?) {
+                // Partials are cumulative (full text so far), not incremental.
+                // Skip sending to terminal to avoid duplicate text.
+            }
+
+            override fun onResults(results: Bundle?) {
+                val texts = results
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val text = texts?.firstOrNull() ?: return
+                bridge?.insertTranscript(text, true)
+                isListening = false
+            }
+
+            override fun onError(error: Int) {
+                Log.w("TerminalSTT", "Speech recognition error: $error")
+                isListening = false
+            }
+
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
+            )
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        }
+        recognizer.startListening(intent)
+    }
+
+    private fun stopSpeechRecognition() {
+        speechRecognizer?.stopListening()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+        isListening = false
+    }
+
     private fun setupKeyboardInsets() {
         val container = findViewById<android.view.View>(R.id.webview_container)
         ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
@@ -281,6 +365,7 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        stopSpeechRecognition()
         networkCallback?.let {
             getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(it)
         }
