@@ -275,16 +275,20 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     private fun requestSpeechRecognition() {
+        Log.d("TerminalSTT", "requestSpeechRecognition called")
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
         ) {
+            Log.d("TerminalSTT", "No RECORD_AUDIO permission, requesting...")
             audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             return
         }
+        Log.d("TerminalSTT", "Permission OK, starting recognition")
         startSpeechRecognition()
     }
 
     private fun startSpeechRecognition() {
+        Log.d("TerminalSTT", "startSpeechRecognition: isListening=$isListening, engine=${prefs.speechEngine}")
         if (isListening) return
         isListening = true
 
@@ -296,14 +300,17 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     private fun startSherpaRecognition() {
+        Log.d("TerminalSTT", "startSherpaRecognition called")
         val sherpa = sherpaRecognizer ?: SherpaRecognizer(this).also {
+            Log.d("TerminalSTT", "Created new SherpaRecognizer")
             sherpaRecognizer = it
         }
 
         sherpa.onPartialResult = { text ->
-            // Partials update in real-time but we don't send to terminal yet
+            Log.d("TerminalSTT", "Partial: '$text'")
         }
         sherpa.onFinalResult = { text ->
+            Log.d("TerminalSTT", "Final: '$text'")
             bridge?.insertTranscript(text, true)
             isListening = false
         }
@@ -313,6 +320,7 @@ class TerminalActivity : AppCompatActivity() {
             isListening = false
         }
 
+        Log.d("TerminalSTT", "Calling sherpa.startListening()")
         sherpa.startListening(lifecycleScope)
     }
 
