@@ -28,10 +28,16 @@ class AppPreferences(context: Context) {
         get() = general.getString(KEY_THEME_MODE, "dark") ?: "dark"
         set(value) = general.edit().putString(KEY_THEME_MODE, value).apply()
 
+    /** "builtin" (sherpa-onnx) or "system" (Android SpeechRecognizer) */
+    var speechEngine: String
+        get() = general.getString(KEY_SPEECH_ENGINE, "builtin") ?: "builtin"
+        set(value) = general.edit().putString(KEY_SPEECH_ENGINE, value).apply()
+
     companion object {
         private const val KEY_ACTIVE_SERVER = "active_server_id"
         private const val KEY_THEME = "theme"
         private const val KEY_APP_ICON = "app_icon"
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_SPEECH_ENGINE = "speech_engine"
     }
 }

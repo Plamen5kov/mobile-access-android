@@ -34,6 +34,7 @@ import xyz.fivekov.terminal.R
 import xyz.fivekov.terminal.data.AppPreferences
 import xyz.fivekov.terminal.data.ServerRepository
 import xyz.fivekov.terminal.service.TerminalService
+import xyz.fivekov.terminal.speech.SherpaRecognizer
 import xyz.fivekov.terminal.ssh.ConnectionState
 import org.koin.android.ext.android.inject
 
@@ -50,12 +51,27 @@ class TerminalActivity : AppCompatActivity() {
     private val observationJobs = mutableMapOf<String, List<Job>>()
 
     private var speechRecognizer: SpeechRecognizer? = null
+    private var sherpaRecognizer: SherpaRecognizer? = null
     private var isListening = false
 
     private val audioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) startSpeechRecognition()
+    }
+
+    private val voiceInputLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        isListening = false
+        if (result.resultCode == RESULT_OK) {
+            val texts = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val text = texts?.firstOrNull()
+            if (!text.isNullOrBlank()) {
+                bridge?.insertTranscript(text, true)
+            }
+        }
     }
 
     private val serviceConnection = object : ServiceConnection {
@@ -270,13 +286,44 @@ class TerminalActivity : AppCompatActivity() {
 
     private fun startSpeechRecognition() {
         if (isListening) return
+        isListening = true
+
+        when (prefs.speechEngine) {
+            "builtin" -> startSherpaRecognition()
+            "keyboard" -> startKeyboardVoiceInput()
+            else -> startSystemRecognition()
+        }
+    }
+
+    private fun startSherpaRecognition() {
+        val sherpa = sherpaRecognizer ?: SherpaRecognizer(assets).also {
+            sherpaRecognizer = it
+        }
+
+        sherpa.onPartialResult = { text ->
+            // Partials update in real-time but we don't send to terminal yet
+        }
+        sherpa.onFinalResult = { text ->
+            bridge?.insertTranscript(text, true)
+            isListening = false
+        }
+        sherpa.onError = { error ->
+            Log.w("TerminalSTT", "Sherpa error: $error")
+            bridge?.insertTranscript("[Voice error: $error]", true)
+            isListening = false
+        }
+
+        sherpa.startListening(lifecycleScope)
+    }
+
+    private fun startSystemRecognition() {
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            Log.w("TerminalSTT", "Speech recognition not available on this device")
-            bridge?.insertTranscript("[Speech recognition unavailable]", true)
+            Log.w("TerminalSTT", "System speech recognition not available")
+            bridge?.insertTranscript("[System speech recognition unavailable]", true)
+            isListening = false
             return
         }
 
-        isListening = true
         val recognizer = SpeechRecognizer.createSpeechRecognizer(this)
         speechRecognizer = recognizer
 
@@ -287,10 +334,7 @@ class TerminalActivity : AppCompatActivity() {
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {}
 
-            override fun onPartialResults(partialResults: Bundle?) {
-                // Partials are cumulative (full text so far), not incremental.
-                // Skip sending to terminal to avoid duplicate text.
-            }
+            override fun onPartialResults(partialResults: Bundle?) {}
 
             override fun onResults(results: Bundle?) {
                 val texts = results
@@ -301,7 +345,7 @@ class TerminalActivity : AppCompatActivity() {
             }
 
             override fun onError(error: Int) {
-                Log.w("TerminalSTT", "Speech recognition error: $error")
+                Log.w("TerminalSTT", "System speech recognition error: $error")
                 isListening = false
             }
 
@@ -318,7 +362,24 @@ class TerminalActivity : AppCompatActivity() {
         recognizer.startListening(intent)
     }
 
+    private fun startKeyboardVoiceInput() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
+            )
+        }
+        try {
+            voiceInputLauncher.launch(intent)
+        } catch (e: Exception) {
+            Log.w("TerminalSTT", "No voice input activity found", e)
+            bridge?.insertTranscript("[No voice input app found]", true)
+            isListening = false
+        }
+    }
+
     private fun stopSpeechRecognition() {
+        sherpaRecognizer?.stopListening()
         speechRecognizer?.stopListening()
         speechRecognizer?.destroy()
         speechRecognizer = null
@@ -366,6 +427,8 @@ class TerminalActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         stopSpeechRecognition()
+        sherpaRecognizer?.release()
+        sherpaRecognizer = null
         networkCallback?.let {
             getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(it)
         }

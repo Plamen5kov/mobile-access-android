@@ -29,4 +29,16 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="VOICE">
+
+        <ListPreference
+            android:key="speech_engine"
+            android:title="Speech Engine"
+            android:defaultValue="builtin"
+            android:entries="@array/speech_engine_entries"
+            android:entryValues="@array/speech_engine_values"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

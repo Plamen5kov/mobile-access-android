@@ -42,4 +42,15 @@
         <item>green</item>
         <item>color</item>
     </string-array>
+
+    <string-array name="speech_engine_entries">
+        <item>Built-in (offline)</item>
+        <item>System</item>
+        <item>Keyboard</item>
+    </string-array>
+    <string-array name="speech_engine_values">
+        <item>builtin</item>
+        <item>system</item>
+        <item>keyboard</item>
+    </string-array>
 </resources>

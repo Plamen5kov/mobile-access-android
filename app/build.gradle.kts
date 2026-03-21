@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.webkit)
     implementation(libs.recyclerview)
     implementation(libs.preference)
+    implementation(files("libs/sherpa-onnx-1.12.31.aar"))
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

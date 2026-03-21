@@ -26,6 +26,8 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "SETTINGS"
 
+        findViewById<View>(android.R.id.content).fitsSystemWindows = true
+
         if (savedInstanceState == null) {
             supportFragmentManager
                 .beginTransaction()
@@ -78,6 +80,12 @@ class SettingsActivity : AppCompatActivity() {
                 val mode = newValue as String
                 prefs.themeMode = mode
                 TerminalApp.applyThemeMode(mode)
+                true
+            }
+
+            findPreference<ListPreference>("speech_engine")?.value = prefs.speechEngine
+            findPreference<ListPreference>("speech_engine")?.setOnPreferenceChangeListener { _, newValue ->
+                prefs.speechEngine = newValue as String
                 true
             }
 
