@@ -318,28 +318,33 @@ body {
 #toolbar {
   display: flex;
   gap: 4px;
-  padding: 6px 8px;
+  padding: 6px 4px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
-  justify-content: space-between;
+  align-items: center;
 }
 
 #toolbar .toolbar-left,
 #toolbar .toolbar-right {
   display: flex;
   gap: 4px;
+  flex: 1;
+}
+
+#toolbar .toolbar-right {
+  justify-content: flex-end;
 }
 
 .toolbar-btn {
   border: 1px solid var(--border-color);
   border-radius: 2px;
-  font: 600 10px var(--font);
+  font: 600 16px var(--font);
   cursor: pointer;
   color: var(--text-secondary);
-  height: 30px;
-  min-width: 40px;
-  padding: 0 8px;
+  height: 52px;
+  flex: 1;
+  padding: 0 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -365,6 +370,9 @@ body {
 }
 #action-btn {
   color: var(--text-secondary);
+  flex: 0 0 auto;
+  min-width: 80px;
+  font-size: 18px;
 }
 
 #action-btn.recording {
