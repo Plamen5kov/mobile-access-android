@@ -21,7 +21,9 @@ on:
 
 jobs:
   setup:
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore: bump version') || github.event_name == 'workflow_call' }}
+    if: >-
+      ${{ !startsWith(github.event.head_commit.message, 'chore: bump version')
+      || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
