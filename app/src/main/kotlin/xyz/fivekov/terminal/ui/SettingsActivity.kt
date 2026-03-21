@@ -4,8 +4,11 @@ import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Bundle
+import android.speech.RecognitionService
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
@@ -82,11 +85,7 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
 
-            findPreference<ListPreference>("speech_engine")?.value = prefs.speechEngine
-            findPreference<ListPreference>("speech_engine")?.setOnPreferenceChangeListener { _, newValue ->
-                prefs.speechEngine = newValue as String
-                true
-            }
+            setupSpeechEnginePreference()
 
             findPreference<Preference>("app_icon")?.apply {
                 summary = if (prefs.appIcon == "green") "Green Phosphor" else "Classic Color"
@@ -103,6 +102,46 @@ class SettingsActivity : AppCompatActivity() {
                     showSshKeyDialog()
                     true
                 }
+            }
+        }
+
+        private fun setupSpeechEnginePreference() {
+            val pref = findPreference<ListPreference>("speech_engine") ?: return
+            val pm = requireContext().packageManager
+
+            // Always available options
+            val entries = mutableListOf("Built-in (Sherpa, offline)")
+            val values = mutableListOf("builtin")
+
+            // Discover installed RecognitionService providers
+            val intent = Intent(RecognitionService.SERVICE_INTERFACE)
+            val services: List<ResolveInfo> = pm.queryIntentServices(intent, PackageManager.GET_META_DATA)
+
+            for (service in services) {
+                val si = service.serviceInfo
+                val label = si.loadLabel(pm).toString()
+                val component = "${si.packageName}/${si.name}"
+                entries.add(label)
+                values.add("service:$component")
+            }
+
+            // Keyboard voice input (always available as fallback)
+            entries.add("Keyboard voice input")
+            values.add("keyboard")
+
+            pref.entries = entries.toTypedArray()
+            pref.entryValues = values.toTypedArray()
+
+            // If current value is "system" (old), migrate to first discovered service or builtin
+            if (prefs.speechEngine == "system") {
+                val firstService = values.firstOrNull { it.startsWith("service:") }
+                prefs.speechEngine = firstService ?: "builtin"
+            }
+
+            pref.value = prefs.speechEngine
+            pref.setOnPreferenceChangeListener { _, newValue ->
+                prefs.speechEngine = newValue as String
+                true
             }
         }
 

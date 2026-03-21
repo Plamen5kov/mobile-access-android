@@ -103,6 +103,16 @@ class TerminalActivity : AppCompatActivity() {
         setupWebView()
         setupKeyboardInsets()
         registerNetworkCallback()
+
+        // Start always-listening recognizer so model is warmed up for instant recognition
+        if (prefs.speechEngine == "builtin") {
+            lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Default) {
+                sherpaRecognizer = SherpaRecognizer(this@TerminalActivity).also {
+                    it.warmup()
+                    it.startContinuousListening(lifecycleScope)
+                }
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -275,66 +285,69 @@ class TerminalActivity : AppCompatActivity() {
     }
 
     private fun requestSpeechRecognition() {
-        Log.d("TerminalSTT", "requestSpeechRecognition called")
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d("TerminalSTT", "No RECORD_AUDIO permission, requesting...")
             audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             return
         }
-        Log.d("TerminalSTT", "Permission OK, starting recognition")
         startSpeechRecognition()
     }
 
     private fun startSpeechRecognition() {
-        Log.d("TerminalSTT", "startSpeechRecognition: isListening=$isListening, engine=${prefs.speechEngine}")
+        val engine = prefs.speechEngine
         if (isListening) return
         isListening = true
 
-        when (prefs.speechEngine) {
-            "builtin" -> startSherpaRecognition()
-            "keyboard" -> startKeyboardVoiceInput()
-            else -> startSystemRecognition()
+        when {
+            engine == "builtin" -> startSherpaRecognition()
+            engine == "keyboard" -> startKeyboardVoiceInput()
+            engine.startsWith("service:") -> startServiceRecognition(engine.removePrefix("service:"))
+            else -> startServiceRecognition(null)
         }
     }
 
     private fun startSherpaRecognition() {
-        Log.d("TerminalSTT", "startSherpaRecognition called")
         val sherpa = sherpaRecognizer ?: SherpaRecognizer(this).also {
-            Log.d("TerminalSTT", "Created new SherpaRecognizer")
             sherpaRecognizer = it
         }
 
-        sherpa.onPartialResult = { text ->
-            Log.d("TerminalSTT", "Partial: '$text'")
-        }
+        sherpa.onPartialResult = { text -> }
         sherpa.onFinalResult = { text ->
-            Log.d("TerminalSTT", "Final: '$text'")
             bridge?.insertTranscript(text, true)
             isListening = false
         }
         sherpa.onError = { error ->
-            Log.w("TerminalSTT", "Sherpa error: $error")
             bridge?.insertTranscript("[Voice error: $error]", true)
             isListening = false
         }
 
-        Log.d("TerminalSTT", "Calling sherpa.startListening()")
         sherpa.startListening(lifecycleScope)
     }
 
-    private fun startSystemRecognition() {
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            Log.w("TerminalSTT", "System speech recognition not available")
-            bridge?.insertTranscript("[System speech recognition unavailable]", true)
-            isListening = false
-            return
-        }
+    private fun startServiceRecognition(component: String?) {
+        // SpeechRecognizer must run on main thread
+        runOnUiThread { startServiceRecognitionOnMain(component) }
+    }
 
-        val recognizer = SpeechRecognizer.createSpeechRecognizer(this)
+    private fun startServiceRecognitionOnMain(component: String?) {
+        val recognizer = if (component != null) {
+            val parts = component.split("/")
+            val cn = android.content.ComponentName(parts[0], parts[1])
+            Log.d("TerminalSTT", "Creating SpeechRecognizer with $cn")
+            SpeechRecognizer.createSpeechRecognizer(this, cn)
+        } else {
+            if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+                Log.w("TerminalSTT", "System speech recognition not available")
+                bridge?.insertTranscript("[No speech recognition service found]", true)
+                isListening = false
+                return
+            }
+            SpeechRecognizer.createSpeechRecognizer(this)
+        }
         speechRecognizer = recognizer
 
+        var resultDelivered = false
         recognizer.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {}
             override fun onBeginningOfSpeech() {}
@@ -345,16 +358,21 @@ class TerminalActivity : AppCompatActivity() {
             override fun onPartialResults(partialResults: Bundle?) {}
 
             override fun onResults(results: Bundle?) {
+                if (resultDelivered) return
+                resultDelivered = true
                 val texts = results
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val text = texts?.firstOrNull() ?: return
                 bridge?.insertTranscript(text, true)
                 isListening = false
+                speechRecognizer?.destroy()
+                speechRecognizer = null
             }
 
             override fun onError(error: Int) {
-                Log.w("TerminalSTT", "System speech recognition error: $error")
                 isListening = false
+                speechRecognizer?.destroy()
+                speechRecognizer = null
             }
 
             override fun onEvent(eventType: Int, params: Bundle?) {}
@@ -365,7 +383,7 @@ class TerminalActivity : AppCompatActivity() {
                 RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
             )
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
         }
         recognizer.startListening(intent)
     }
