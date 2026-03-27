@@ -36,37 +36,36 @@ export function setupViewportTracking(
     if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", () => {
             setHeight();
-            sessionManager.getActiveTerminal()?.scrollToBottom();
+            if (isTerminalAtBottom(sessionManager)) {
+                sessionManager.getActiveTerminal()?.scrollToBottom();
+            }
         });
         window.visualViewport.addEventListener("scroll", setHeight);
     }
 }
 
-export function setupTouchScrolling(
-    container: HTMLElement,
-    sessionManager: SessionManager,
-) {
-    let touchStartY = 0;
+/** Check if the active terminal viewport is at (or near) the bottom of the scrollback. */
+export function isTerminalAtBottom(sessionManager: SessionManager): boolean {
+    const term = sessionManager.getActiveTerminal();
+    if (!term) return true;
+    const buf = term.buffer.active;
+    return buf.viewportY >= buf.baseY;
+}
 
-    container.addEventListener(
-        "touchstart",
-        (e) => {
-            touchStartY = e.touches[0].clientY;
-        },
-        { passive: false },
-    );
+/** Set up the "jump to bottom" button that appears when scrolled up. */
+export function setupScrollToBottom(sessionManager: SessionManager): {
+    show: () => void;
+    hide: () => void;
+} {
+    const btn = document.getElementById("scroll-bottom-btn")!;
 
-    container.addEventListener(
-        "touchmove",
-        (e) => {
-            e.preventDefault();
-            const terminal = sessionManager.getActiveTerminal();
-            if (!terminal) return;
-            const deltaY = touchStartY - e.touches[0].clientY;
-            touchStartY = e.touches[0].clientY;
-            if (deltaY > 0) terminal.scrollLines(2);
-            else if (deltaY < 0) terminal.scrollLines(-2);
-        },
-        { passive: false },
-    );
+    btn.addEventListener("click", () => {
+        sessionManager.getActiveTerminal()?.scrollToBottom();
+        btn.classList.add("hidden");
+    });
+
+    return {
+        show: () => btn.classList.remove("hidden"),
+        hide: () => btn.classList.add("hidden"),
+    };
 }

@@ -14,6 +14,9 @@ function stripCrossorigin(): Plugin {
 export default defineConfig({
     base: "./",
     plugins: [stripCrossorigin()],
+    test: {
+        environment: "jsdom",
+    },
     build: {
         outDir: "../app/src/main/assets/www",
         emptyOutDir: true,

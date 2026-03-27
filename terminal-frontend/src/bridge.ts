@@ -1,6 +1,6 @@
 import type { SessionManager } from "./session-manager";
 import type { NativeTerminalApi, ThemeName } from "./types";
-import { applyTheme } from "./ui";
+import { applyTheme, isTerminalAtBottom } from "./ui";
 import { renderTabs } from "./tabs";
 
 const sessionStatus = new Map<string, { status: string; state: string }>();
@@ -9,6 +9,15 @@ const statusTextEl = document.getElementById("status-text");
 const statusDotEl = document.getElementById("status-dot");
 const errorPanelEl = document.getElementById("error-panel");
 const errorMessageEl = document.getElementById("error-message");
+
+let scrollBottomControl: { show: () => void; hide: () => void } | null = null;
+
+export function setBridgeScrollControl(ctrl: {
+    show: () => void;
+    hide: () => void;
+}) {
+    scrollBottomControl = ctrl;
+}
 
 function updateStatusBar(status: string, state: string) {
     if (statusTextEl) statusTextEl.textContent = status;
@@ -34,9 +43,16 @@ export function registerBridge(
     const api: NativeTerminalApi = {
         writeToTerminal(sessionId: string, data: string) {
             const term = sessionManager.getTerminal(sessionId);
-            if (term) {
-                term.write(data);
+            if (!term) return;
+
+            const wasAtBottom = isTerminalAtBottom(sessionManager);
+            term.write(data);
+
+            if (wasAtBottom) {
                 requestAnimationFrame(() => term.scrollToBottom());
+                scrollBottomControl?.hide();
+            } else if (sessionId === sessionManager.getActiveSessionId()) {
+                scrollBottomControl?.show();
             }
         },
 

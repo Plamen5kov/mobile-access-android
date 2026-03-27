@@ -87,8 +87,8 @@ export function setupToolbar(sessionManager: SessionManager) {
         .getElementById("ctrlc-btn")!
         .addEventListener("click", () => send("\x03"));
     document
-        .getElementById("tab-btn")!
-        .addEventListener("click", () => send("\t"));
+        .getElementById("shift-tab-btn")!
+        .addEventListener("click", () => send("\x1b[Z"));
     document
         .getElementById("up-btn")!
         .addEventListener("click", () => send("\x1b[A"));

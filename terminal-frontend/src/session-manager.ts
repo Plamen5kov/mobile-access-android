@@ -21,9 +21,19 @@ export class SessionManager {
     private sessions = new Map<string, SessionEntry>();
     private activeSessionId: string | null = null;
     private parentContainer: HTMLElement;
+    private scrollListeners: Array<() => void> = [];
 
     constructor(parentContainer: HTMLElement) {
         this.parentContainer = parentContainer;
+    }
+
+    /** Register a callback that fires whenever any terminal scrolls. */
+    onScroll(listener: () => void): void {
+        this.scrollListeners.push(listener);
+    }
+
+    private notifyScroll(): void {
+        for (const fn of this.scrollListeners) fn();
     }
 
     addSession(
@@ -76,6 +86,8 @@ export class SessionManager {
             window.Android?.sendInput(sessionId, data);
         });
 
+        const scrollListener = terminal.onScroll(() => this.notifyScroll());
+
         const entry: SessionEntry = {
             sessionId,
             name,
@@ -83,7 +95,7 @@ export class SessionManager {
             terminal,
             fitAddon,
             container,
-            disposables: [dataListener],
+            disposables: [dataListener, scrollListener],
         };
         this.sessions.set(sessionId, entry);
 

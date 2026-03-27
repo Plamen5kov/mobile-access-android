@@ -1,9 +1,9 @@
 import "@xterm/xterm/css/xterm.css";
 import "./styles.css";
 import { SessionManager } from "./session-manager";
-import { registerBridge } from "./bridge";
+import { registerBridge, setBridgeScrollControl } from "./bridge";
 import { setupInput, setupToolbar } from "./input";
-import { applyTheme, setupViewportTracking, setupTouchScrolling } from "./ui";
+import { applyTheme, setupViewportTracking, setupScrollToBottom } from "./ui";
 
 applyTheme("dark");
 
@@ -15,6 +15,21 @@ const tabBar = document.getElementById("tab-bar")!;
 setupInput(sessionManager);
 setupToolbar(sessionManager);
 registerBridge(sessionManager, tabBar);
+
+// Wire scroll-to-bottom button to bridge
+const scrollControl = setupScrollToBottom(sessionManager);
+setBridgeScrollControl(scrollControl);
+
+// Hide scroll-to-bottom when user scrolls back to the end
+sessionManager.onScroll(() => {
+    const term = sessionManager.getActiveTerminal();
+    if (!term) return;
+    if (term.buffer.active.viewportY >= term.buffer.active.baseY) {
+        scrollControl.hide();
+    } else {
+        scrollControl.show();
+    }
+});
 
 // Session close button
 document.getElementById("session-close-btn")!.addEventListener("click", () => {
@@ -28,6 +43,5 @@ setupViewportTracking(
     () => sessionManager.syncActiveSize(),
     sessionManager,
 );
-setupTouchScrolling(terminalContainer, sessionManager);
 
 window.Android?.onWebViewReady();
