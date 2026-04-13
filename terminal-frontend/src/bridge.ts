@@ -41,6 +41,16 @@ export function registerBridge(
     tabBar: HTMLElement,
 ): NativeTerminalApi {
     const api: NativeTerminalApi = {
+        replayHistory(sessionId: string, data: string) {
+            const term = sessionManager.getTerminal(sessionId);
+            if (!term) return;
+            if (!data) return;
+
+            // Write history, then push it all into scrollback with newlines
+            // so tmux's cursor-home redraw doesn't overwrite it
+            term.write(data + "\r\n".repeat(term.rows));
+        },
+
         writeToTerminal(sessionId: string, data: string) {
             const term = sessionManager.getTerminal(sessionId);
             if (!term) return;

@@ -49,9 +49,17 @@ class SshManager(
     private var currentConfig: ServerConfig? = null
     private var scope: CoroutineScope? = null
 
+    private val outputHistory = OutputRingBuffer(MAX_HISTORY_CHARS)
+
+    companion object {
+        const val MAX_HISTORY_CHARS = 500_000
+    }
+
     fun attach(scope: CoroutineScope) {
         this.scope = scope
     }
+
+    fun getHistory(): String = outputHistory.getContent()
 
     suspend fun connect(config: ServerConfig) {
         currentConfig = config
@@ -209,6 +217,7 @@ class SshManager(
                     val bytesRead = input.read(buffer)
                     if (bytesRead == -1) break
                     val text = String(buffer, 0, bytesRead)
+                    outputHistory.append(text)
                     _output.emit(text)
                 }
             } catch (e: CancellationException) {

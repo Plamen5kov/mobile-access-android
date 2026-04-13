@@ -19,7 +19,9 @@ class TmuxHelper {
         val name = sanitize(sessionName)
         return """
             if command -v tmux >/dev/null 2>&1; then
+                tmux set-option -g history-limit 10000 2>/dev/null
                 tmux set-option -g aggressive-resize on 2>/dev/null
+                tmux set-option -g mouse on 2>/dev/null
                 tmux new-session -As $name
             else
                 exec ${'$'}SHELL -l

@@ -24,6 +24,7 @@ class TerminalBridge(
     private val onOpenSettings: () -> Unit,
     private val onOpenServerSettings: (serverId: String) -> Unit,
     private val onReady: () -> Unit,
+    private val onCopyToClipboard: (text: String) -> Unit = {},
 ) {
     // --- JS → Kotlin ---
 
@@ -72,6 +73,11 @@ class TerminalBridge(
         onReady()
     }
 
+    @JavascriptInterface
+    fun copyToClipboard(text: String) {
+        onCopyToClipboard(text)
+    }
+
     // --- Kotlin → JS ---
 
     fun addTab(sessionId: String, name: String, serverId: String) {
@@ -104,6 +110,15 @@ class TerminalBridge(
     fun insertTranscript(text: String, isFinal: Boolean) {
         val escaped = text.replace("'", "\\'")
         js.evaluate("window.NativeTerminal.insertTranscript('$escaped', $isFinal)")
+    }
+
+    fun replayHistory(sessionId: String, data: String) {
+        val escaped = data
+            .replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+        js.evaluate("window.NativeTerminal.replayHistory('$sessionId', '$escaped')")
     }
 
     fun setTheme(theme: String) {

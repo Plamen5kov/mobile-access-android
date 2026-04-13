@@ -42,6 +42,13 @@ export function setupViewportTracking(
         });
         window.visualViewport.addEventListener("scroll", setHeight);
     }
+
+    // ResizeObserver catches container dimension changes that visualViewport misses
+    const container = document.getElementById("terminal-container");
+    if (container) {
+        const ro = new ResizeObserver(() => syncSize());
+        ro.observe(container);
+    }
 }
 
 /** Check if the active terminal viewport is at (or near) the bottom of the scrollback. */

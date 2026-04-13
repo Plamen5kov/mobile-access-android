@@ -54,7 +54,7 @@ export class SessionManager {
         const terminal = new Terminal({
             cursorBlink: true,
             fontSize: 14,
-            scrollback: 5000,
+            scrollback: 10000,
             fontFamily: 'Menlo, Monaco, "Courier New", monospace',
             theme: getTheme(getCurrentTheme()),
             allowProposedApi: true,
@@ -85,6 +85,23 @@ export class SessionManager {
         const dataListener = terminal.onData((data) => {
             window.Android?.sendInput(sessionId, data);
         });
+
+        // Fix Android soft keyboard backspace: intercept beforeinput to send
+        // proper DEL character instead of letting the textarea get out of sync
+        const textarea = container.querySelector(
+            ".xterm-helper-textarea",
+        ) as HTMLTextAreaElement | null;
+        if (textarea) {
+            textarea.addEventListener("beforeinput", (e) => {
+                if (e.inputType === "deleteContentBackward") {
+                    e.preventDefault();
+                    window.Android?.sendInput(sessionId, "\x7f");
+                } else if (e.inputType === "deleteContentForward") {
+                    e.preventDefault();
+                    window.Android?.sendInput(sessionId, "\x1b[3~");
+                }
+            });
+        }
 
         const scrollListener = terminal.onScroll(() => this.notifyScroll());
 
@@ -134,16 +151,18 @@ export class SessionManager {
             target.container.style.display = "block";
             this.activeSessionId = sessionId;
 
-            // Defer fit until after the browser completes layout for the
-            // newly-visible container, otherwise dimensions are stale.
+            // Double-raf ensures the container is fully laid out before fitting
             requestAnimationFrame(() => {
-                target.fitAddon.fit();
-                target.terminal.focus();
-                window.Android?.sendResize(
-                    sessionId,
-                    target.terminal.cols,
-                    target.terminal.rows,
-                );
+                requestAnimationFrame(() => {
+                    target.fitAddon.fit();
+                    target.terminal.focus();
+                    target.terminal.refresh(0, target.terminal.rows - 1);
+                    window.Android?.sendResize(
+                        sessionId,
+                        target.terminal.cols,
+                        target.terminal.rows,
+                    );
+                });
             });
         }
     }

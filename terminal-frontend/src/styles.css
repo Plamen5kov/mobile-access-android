@@ -213,6 +213,13 @@ body {
 .session-container {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+
+/* Let JS handle touch scroll — disable browser gesture interference */
+.session-container .xterm-viewport,
+.session-container .xterm-screen {
+  touch-action: none;
 }
 
 /* --- Terminal --- */
@@ -220,11 +227,12 @@ body {
   flex: 1;
   min-height: 0;
   position: relative;
+  overflow: hidden;
 }
 
 #terminal-container {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   background: var(--bg-primary);
 }
 

@@ -2,6 +2,8 @@ package xyz.fivekov.terminal.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -21,6 +23,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -167,6 +170,10 @@ class TerminalActivity : AppCompatActivity() {
             allowContentAccess = false
         }
 
+        // Prevent WebView from consuming vertical scroll — let xterm.js handle it
+        webView.overScrollMode = WebView.OVER_SCROLL_NEVER
+        webView.isVerticalScrollBarEnabled = false
+
         bridge = TerminalBridge(
             js = WebViewJsEvaluator(webView),
             onInput = { sessionId, data -> terminalService?.sendInput(sessionId, data) },
@@ -197,6 +204,13 @@ class TerminalActivity : AppCompatActivity() {
                 })
             },
             onReady = { onWebViewReady() },
+            onCopyToClipboard = { text ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("Terminal", text))
+                runOnUiThread {
+                    Toast.makeText(this@TerminalActivity, "Copied", Toast.LENGTH_SHORT).show()
+                }
+            },
         )
         webView.addJavascriptInterface(bridge!!, "Android")
         webView.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
@@ -227,6 +241,13 @@ class TerminalActivity : AppCompatActivity() {
             val session = service.sessionManager.getSession(sessionId) ?: continue
             val info = service.sessionManager.sessionList.value.find { it.sessionId == sessionId }
             bridge?.addTab(sessionId, info?.serverDisplayName ?: "Session", info?.serverId ?: "")
+
+            // Replay saved output history into the terminal
+            val history = session.getHistory()
+            if (history.isNotEmpty()) {
+                bridge?.replayHistory(sessionId, history)
+            }
+
             observeSession(service, sessionId)
         }
 

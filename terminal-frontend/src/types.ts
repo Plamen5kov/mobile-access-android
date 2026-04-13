@@ -9,11 +9,13 @@ export interface AndroidBridge {
     openSettings(): void;
     openServerSettings(serverId: string): void;
     onWebViewReady(): void;
+    copyToClipboard(text: string): void;
 }
 
 /** Methods callable from Kotlin via evaluateJavascript */
 export interface NativeTerminalApi {
     writeToTerminal(sessionId: string, data: string): void;
+    replayHistory(sessionId: string, data: string): void;
     setConnectionStatus(sessionId: string, status: string, state: string): void;
     addTab(sessionId: string, name: string, serverId: string): void;
     removeTab(sessionId: string): void;

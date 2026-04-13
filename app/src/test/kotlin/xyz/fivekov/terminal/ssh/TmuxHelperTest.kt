@@ -32,6 +32,12 @@ class TmuxHelperTest {
     }
 
     @Test
+    fun `attach command sets history limit`() {
+        val cmd = helper.buildAttachCommand()
+        assertTrue(cmd.contains("history-limit"))
+    }
+
+    @Test
     fun `detach command is tmux detach-client`() {
         val cmd = helper.buildDetachCommand()
         assertTrue(cmd.contains("tmux detach-client"))
